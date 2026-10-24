@@ -18,6 +18,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 </head>
 <body>
 <div id="root"></div>
@@ -25,20 +26,16 @@
 <script type="text/babel" data-presets="react">
 const { useState, useRef, useEffect } = React;
 
-/* ============================================================
-   >>> PASTE YOUR FIREBASE CONFIG HERE <<<
-   Firebase console → Project settings → Your apps → Web app.
-   Replace this whole object with the one Firebase gives you.
-   (The same config goes in admin.html.)
-   ============================================================ */
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyArCjlwd1Nmy4XEFUL56mExMMks55iDRIo",
-  authDomain: "influence-profiles.firebaseapp.com",
-  projectId: "influence-profiles",
-  storageBucket: "influence-profiles.firebasestorage.app",
-  messagingSenderId: "771669057347",
-  appId: "1:771669057347:web:bd1099a7e6effcef7b19f6"
-};
+/* Firebase config lives in firebase-config.js (paste it there, not here). */
+const FIREBASE_CONFIG = window.FIREBASE_CONFIG || { apiKey: "PASTE" };
+
+/* Session tag from the link, e.g. ...?session=PLUS-Batch1 */
+const SESSION = (function () {
+  try {
+    const v = new URLSearchParams(window.location.search).get("session") || "";
+    return v.replace(/[^A-Za-z0-9 _.\-]/g, "").trim().slice(0, 60);
+  } catch (e) { return ""; }
+})();
 
 function endpointReady() { return FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf("PASTE") === -1; }
 let _db = null;
@@ -184,7 +181,7 @@ function Intro(props) {
   return (
     <div style={{ maxWidth: 620, margin: "0 auto", padding: "56px 28px 72px" }}>
       <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.32em", color: C.grey }}>GROWTH IMPACT GROUP</div>
-      <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.32em", color: C.grey, marginTop: 4 }}>SELF-ASSESSMENT</div>
+      <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.32em", color: C.grey, marginTop: 4 }}>SELF-ASSESSMENT{SESSION ? " · " + SESSION.toUpperCase() : ""}</div>
       <h1 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 52, lineHeight: 0.98, color: C.ink, margin: "26px 0 0", letterSpacing: "-0.01em" }}>
         The Influence<br /><span style={{ color: C.green }}>Self-Audit</span>
       </h1>
@@ -331,6 +328,7 @@ function Results(props) {
       strengths: signature.map(function (s) { return s.name; }),
       blindSpots: blind.map(function (s) { return s.name; }),
       answers: Object.assign({}, answers),
+      session: SESSION,
     };
   }
 
@@ -349,6 +347,7 @@ function Results(props) {
     const grp = function (g) { return scored.filter(function (s) { return s.group === g; }).map(line); };
     let out = ["MY INFLUENCE PROFILE — Influence Self-Audit (GIG)"];
     if (name) out.push("Name: " + name);
+    if (SESSION) out.push("Session: " + SESSION);
     out.push("Consistency: " + consistency.pct + "% (" + titleCase(cRead.label) + ")"); out.push("");
     out.push("CORE"); out = out.concat(grp("CORE"));
     out.push("SOFT"); out = out.concat(grp("SOFT"));

@@ -8,6 +8,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <style>
   :root {
     --white:#FFFFFF; --ink:#1A1A1A; --green:#36AA54; --muted:#5F656C;
@@ -26,6 +27,7 @@
   .btn { font-family: var(--head); font-weight: 700; font-size: 13px; letter-spacing: .14em; padding: 12px 20px; cursor: pointer; border: 1px solid var(--ink); background: var(--ink); color: var(--white); }
   .btn.ghost { background: var(--white); color: var(--ink); }
   .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 22px; }
+  select { font-family: var(--head); font-weight: 700; font-size: 13px; letter-spacing: .06em; padding: 11px 12px; border: 1px solid var(--ink); background: var(--white); color: var(--ink); border-radius: 0; }
   .note { font-size: 13px; color: var(--muted); line-height: 1.5; }
   .err { color: #B23B3B; }
   .stats { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--hair); max-width: 560px; }
@@ -61,6 +63,7 @@
   <div id="signedIn" style="display:none">
     <div class="row">
       <span class="note" id="who"></span>
+      <select id="sessionFilter"><option value="__all">All sessions</option></select>
       <button class="btn" id="csv">⤓ DOWNLOAD CSV</button>
       <button class="btn ghost" id="refresh">↻ REFRESH</button>
       <button class="btn ghost" id="signOut">SIGN OUT</button>
@@ -72,17 +75,7 @@
 </div>
 
 <script>
-/* ============================================================
-   >>> PASTE THE SAME FIREBASE CONFIG AS IN index.html <<<
-   ============================================================ */
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyArCjlwd1Nmy4XEFUL56mExMMks55iDRIo",
-  authDomain: "influence-profiles.firebaseapp.com",
-  projectId: "influence-profiles",
-  storageBucket: "influence-profiles.firebasestorage.app",
-  messagingSenderId: "771669057347",
-  appId: "1:771669057347:web:bd1099a7e6effcef7b19f6"
-};
+const FIREBASE_CONFIG = window.FIREBASE_CONFIG || { apiKey: "PASTE" };
 
 const TACTICS = [
   ["rational", "RATIONAL PERSUASION", "CORE"],
@@ -99,10 +92,14 @@ const TACTICS = [
 ];
 
 const $ = (id) => document.getElementById(id);
+let allRows = [];
 let rows = [];
+const NO_SESSION = "(no session)";
+const urlSession = new URLSearchParams(location.search).get("session") || "";
+function sessionOf(r) { return r.session ? r.session : NO_SESSION; }
 
 if (FIREBASE_CONFIG.apiKey.indexOf("PASTE") !== -1) {
-  $("error").textContent = "Paste your Firebase config into admin.html first.";
+  $("error").textContent = "Paste your Firebase config into firebase-config.js first.";
 } else {
   firebase.initializeApp(FIREBASE_CONFIG);
   const auth = firebase.auth();
@@ -124,6 +121,8 @@ if (FIREBASE_CONFIG.apiKey.indexOf("PASTE") !== -1) {
   });
 }
 
+document.getElementById("sessionFilter").addEventListener("change", applyFilter);
+
 function esc(s) {
   return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
@@ -136,17 +135,34 @@ async function load(db) {
   $("content").innerHTML = '<p class="note" style="margin-top:24px">Loading results…</p>';
   try {
     const snap = await db.collection("results").orderBy("createdAt", "desc").get();
-    rows = snap.docs.map((d) => {
+    allRows = snap.docs.map((d) => {
       const x = d.data();
       return Object.assign({ id: d.id, date: x.createdAt ? x.createdAt.toDate() : null }, x);
     });
-    render();
+    buildFilter();
+    applyFilter();
   } catch (e) {
     $("content").innerHTML = "";
     $("error").textContent = e.code === "permission-denied"
       ? "Access denied. This Google account is not the admin set in your Firestore rules."
       : e.message;
   }
+}
+
+function buildFilter() {
+  const sel = $("sessionFilter");
+  const current = sel.value !== "__all" ? sel.value : (urlSession || "__all");
+  const counts = {};
+  allRows.forEach((r) => { const k = sessionOf(r); counts[k] = (counts[k] || 0) + 1; });
+  const names = Object.keys(counts).sort((a, b) => (a === NO_SESSION) - (b === NO_SESSION) || a.localeCompare(b));
+  sel.innerHTML = '<option value="__all">All sessions (' + allRows.length + ')</option>'
+    + names.map((k) => '<option value="' + esc(k) + '">' + esc(k) + ' (' + counts[k] + ')</option>').join("");
+  sel.value = names.indexOf(current) !== -1 ? current : "__all";
+}
+function applyFilter() {
+  const v = $("sessionFilter").value;
+  rows = v === "__all" ? allRows.slice() : allRows.filter((r) => sessionOf(r) === v);
+  render();
 }
 
 function render() {
@@ -159,7 +175,8 @@ function render() {
   rows.forEach((r) => { targets[r.developmentTarget] = (targets[r.developmentTarget] || 0) + 1; });
   const topTarget = Object.entries(targets).sort((a, b) => b[1] - a[1])[0];
 
-  let html = '<div class="kicker">COHORT SUMMARY</div>';
+  const sv = $("sessionFilter").value;
+  let html = '<div class="kicker">COHORT SUMMARY · ' + esc(sv === "__all" ? "ALL SESSIONS" : sv.toUpperCase()) + '</div>';
   html += '<div class="stats">'
     + '<div><b>' + n + '</b><small>PARTICIPANTS</small></div>'
     + '<div><b>' + Math.round(avgCons) + '%</b><small>AVG CONSISTENCY</small></div>'
@@ -178,12 +195,12 @@ function render() {
   });
 
   html += '<div class="kicker">INDIVIDUAL RESULTS</div><div class="tablewrap"><table><thead><tr>'
-    + '<th>DATE</th><th>NAME</th><th>CONSISTENCY</th>'
+    + '<th>DATE</th><th>SESSION</th><th>NAME</th><th>CONSISTENCY</th>'
     + TACTICS.map((t) => '<th title="' + t[1] + '">' + t[1].split(" ")[0] + '</th>').join("")
     + '<th>CORE</th><th>SOFT</th><th>HARD</th><th>DEVELOPMENT TARGET</th></tr></thead><tbody>';
   rows.forEach((r) => {
     const g = r.groupAvg || {};
-    html += '<tr><td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.name || "—") + '</td>'
+    html += '<tr><td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.session || "—") + '</td><td>' + esc(r.name || "—") + '</td>'
       + '<td class="num">' + esc(r.consistencyPct) + '%</td>'
       + TACTICS.map((t) => '<td class="num">' + esc(r.scores ? r.scores[t[0]] : "") + '</td>').join("")
       + '<td class="num">' + esc(g.CORE) + '</td><td class="num">' + esc(g.SOFT) + '</td><td class="num">' + esc(g.HARD) + '</td>'
@@ -196,13 +213,13 @@ function render() {
 function downloadCSV() {
   if (!rows.length) return;
   const q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
-  const header = ["Date", "Name", "Consistency %", "Consistency"]
+  const header = ["Date", "Session", "Name", "Consistency %", "Consistency"]
     .concat(TACTICS.map((t) => t[1]))
     .concat(["CORE avg", "SOFT avg", "HARD avg", "Development target", "Signature strengths", "Blind spots", "Record ID"]);
   const lines = [header.map(q).join(",")];
   rows.forEach((r) => {
     const g = r.groupAvg || {};
-    lines.push([fmtDate(r.date), r.name, r.consistencyPct, r.consistencyLabel]
+    lines.push([fmtDate(r.date), r.session || "", r.name, r.consistencyPct, r.consistencyLabel]
       .concat(TACTICS.map((t) => (r.scores ? r.scores[t[0]] : "")))
       .concat([g.CORE, g.SOFT, g.HARD, r.developmentTarget, (r.strengths || []).join(", "), (r.blindSpots || []).join(", "), r.id])
       .map(q).join(","));
@@ -210,7 +227,9 @@ function downloadCSV() {
   const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "influence-audit-results-" + new Date().toISOString().slice(0, 10) + ".csv";
+  const sv = $("sessionFilter").value;
+  const tag = sv === "__all" ? "all" : sv.replace(/[^A-Za-z0-9_-]+/g, "_");
+  a.download = "influence-audit-" + tag + "-" + new Date().toISOString().slice(0, 10) + ".csv";
   a.click();
   URL.revokeObjectURL(a.href);
 }
