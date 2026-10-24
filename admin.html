@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Influence Audit · Results</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root {
+    --white:#FFFFFF; --ink:#1A1A1A; --green:#36AA54; --muted:#5F656C;
+    --grey:#8A9099; --hair:#DDE0E3; --tint:#F2F8F4;
+    --head:'Arial Narrow','Roboto Condensed','Helvetica Condensed',Arial,sans-serif;
+    --body:Arial,Helvetica,sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--white); color: var(--ink); font-family: var(--body); -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 40px 16px 72px; }
+  .over { font-family: var(--head); font-weight: 700; font-size: 11px; letter-spacing: .32em; color: var(--grey); }
+  h1 { font-family: var(--head); font-weight: 700; text-transform: uppercase; font-size: 40px; line-height: 1; margin: 14px 0 0; }
+  h1 span { color: var(--green); }
+  .kicker { display: flex; align-items: center; gap: 8px; font-family: var(--head); font-weight: 700; font-size: 12px; letter-spacing: .22em; color: var(--green); margin: 34px 0 12px; }
+  .kicker::before { content: ""; width: 8px; height: 8px; background: var(--green); }
+  .btn { font-family: var(--head); font-weight: 700; font-size: 13px; letter-spacing: .14em; padding: 12px 20px; cursor: pointer; border: 1px solid var(--ink); background: var(--ink); color: var(--white); }
+  .btn.ghost { background: var(--white); color: var(--ink); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 22px; }
+  .note { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .err { color: #B23B3B; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--hair); max-width: 560px; }
+  .stats div { padding: 14px 8px; text-align: center; border-left: 1px solid var(--hair); }
+  .stats div:first-child { border-left: none; }
+  .stats b { display: block; font-family: var(--head); font-size: 26px; }
+  .stats small { font-family: var(--head); font-weight: 700; font-size: 10px; letter-spacing: .18em; color: var(--grey); }
+  .bar { display: grid; grid-template-columns: 190px 1fr 40px; gap: 10px; align-items: center; margin-bottom: 8px; max-width: 720px; }
+  .bar .lbl { font-family: var(--head); font-weight: 700; font-size: 12.5px; }
+  .bar .track { height: 12px; background: var(--tint); border: 1px solid var(--hair); position: relative; }
+  .bar .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ink); }
+  .bar .mid { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; background: var(--green); opacity: .5; }
+  .bar .val { font-family: var(--head); font-weight: 700; font-size: 13px; text-align: right; }
+  .grp { font-family: var(--head); font-weight: 700; font-size: 10.5px; letter-spacing: .22em; color: var(--green); margin: 14px 0 8px; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--hair); }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  th { background: var(--green); color: var(--white); font-family: var(--head); font-weight: 700; font-size: 11px; letter-spacing: .08em; text-align: left; padding: 9px 8px; white-space: nowrap; }
+  td { padding: 8px; border-top: 1px solid var(--hair); white-space: nowrap; }
+  td.num { text-align: center; font-family: var(--head); font-weight: 700; }
+  @media (max-width: 600px) { .bar { grid-template-columns: 130px 1fr 34px; } h1 { font-size: 32px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="over">GROWTH IMPACT GROUP · FACILITATOR ONLY</div>
+  <h1>Influence Audit<br /><span>Results</span></h1>
+
+  <div id="signedOut">
+    <p class="note" style="margin-top:18px">Sign in with the Google account you set as the admin in your Firestore rules.</p>
+    <div class="row"><button class="btn" id="signIn">SIGN IN WITH GOOGLE</button></div>
+  </div>
+
+  <div id="signedIn" style="display:none">
+    <div class="row">
+      <span class="note" id="who"></span>
+      <button class="btn" id="csv">⤓ DOWNLOAD CSV</button>
+      <button class="btn ghost" id="refresh">↻ REFRESH</button>
+      <button class="btn ghost" id="signOut">SIGN OUT</button>
+    </div>
+    <div id="content"></div>
+  </div>
+
+  <p class="note err" id="error"></p>
+</div>
+
+<script>
+/* ============================================================
+   >>> PASTE THE SAME FIREBASE CONFIG AS IN index.html <<<
+   ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyArCjlwd1Nmy4XEFUL56mExMMks55iDRIo",
+  authDomain: "influence-profiles.firebaseapp.com",
+  projectId: "influence-profiles",
+  storageBucket: "influence-profiles.firebasestorage.app",
+  messagingSenderId: "771669057347",
+  appId: "1:771669057347:web:bd1099a7e6effcef7b19f6"
+};
+
+const TACTICS = [
+  ["rational", "RATIONAL PERSUASION", "CORE"],
+  ["consultation", "CONSULTATION", "CORE"],
+  ["collaboration", "COLLABORATION", "CORE"],
+  ["inspirational", "INSPIRATIONAL APPEALS", "CORE"],
+  ["apprising", "APPRISING", "CORE"],
+  ["ingratiation", "INGRATIATION", "SOFT"],
+  ["personal", "PERSONAL APPEALS", "SOFT"],
+  ["exchange", "EXCHANGE", "SOFT"],
+  ["pressure", "PRESSURE", "HARD"],
+  ["legitimating", "LEGITIMATING", "HARD"],
+  ["coalition", "COALITION", "HARD"],
+];
+
+const $ = (id) => document.getElementById(id);
+let rows = [];
+
+if (FIREBASE_CONFIG.apiKey.indexOf("PASTE") !== -1) {
+  $("error").textContent = "Paste your Firebase config into admin.html first.";
+} else {
+  firebase.initializeApp(FIREBASE_CONFIG);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  $("signIn").onclick = () => {
+    $("error").textContent = "";
+    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch((e) => { $("error").textContent = e.message; });
+  };
+  $("signOut").onclick = () => auth.signOut();
+  $("refresh").onclick = () => load(db);
+  $("csv").onclick = downloadCSV;
+
+  auth.onAuthStateChanged((user) => {
+    $("signedOut").style.display = user ? "none" : "block";
+    $("signedIn").style.display = user ? "block" : "none";
+    $("content").innerHTML = "";
+    if (user) { $("who").textContent = "Signed in as " + user.email; load(db); }
+  });
+}
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function fmtDate(d) {
+  return d ? d.toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
+}
+
+async function load(db) {
+  $("error").textContent = "";
+  $("content").innerHTML = '<p class="note" style="margin-top:24px">Loading results…</p>';
+  try {
+    const snap = await db.collection("results").orderBy("createdAt", "desc").get();
+    rows = snap.docs.map((d) => {
+      const x = d.data();
+      return Object.assign({ id: d.id, date: x.createdAt ? x.createdAt.toDate() : null }, x);
+    });
+    render();
+  } catch (e) {
+    $("content").innerHTML = "";
+    $("error").textContent = e.code === "permission-denied"
+      ? "Access denied. This Google account is not the admin set in your Firestore rules."
+      : e.message;
+  }
+}
+
+function render() {
+  const n = rows.length;
+  if (!n) { $("content").innerHTML = '<p class="note" style="margin-top:24px">No results yet.</p>'; return; }
+
+  const avg = (fn) => rows.reduce((a, r) => a + fn(r), 0) / n;
+  const avgCons = avg((r) => r.consistencyPct || 0);
+  const targets = {};
+  rows.forEach((r) => { targets[r.developmentTarget] = (targets[r.developmentTarget] || 0) + 1; });
+  const topTarget = Object.entries(targets).sort((a, b) => b[1] - a[1])[0];
+
+  let html = '<div class="kicker">COHORT SUMMARY</div>';
+  html += '<div class="stats">'
+    + '<div><b>' + n + '</b><small>PARTICIPANTS</small></div>'
+    + '<div><b>' + Math.round(avgCons) + '%</b><small>AVG CONSISTENCY</small></div>'
+    + '<div><b style="font-size:15px;line-height:1.2;padding-top:6px">' + esc(topTarget[0]) + '</b><small>MOST COMMON TARGET (' + topTarget[1] + ')</small></div>'
+    + '</div>';
+
+  html += '<div class="kicker">AVERAGE SCORE PER LEVER (0–6, BALANCE POINT 3)</div>';
+  ["CORE", "SOFT", "HARD"].forEach((g) => {
+    html += '<div class="grp">' + g + '</div>';
+    TACTICS.filter((t) => t[2] === g).forEach((t) => {
+      const v = avg((r) => (r.scores && r.scores[t[0]]) || 0);
+      html += '<div class="bar"><span class="lbl">' + t[1] + '</span>'
+        + '<span class="track"><span class="mid"></span><span class="fill" style="width:' + (v / 6 * 100).toFixed(1) + '%"></span></span>'
+        + '<span class="val">' + v.toFixed(1) + '</span></div>';
+    });
+  });
+
+  html += '<div class="kicker">INDIVIDUAL RESULTS</div><div class="tablewrap"><table><thead><tr>'
+    + '<th>DATE</th><th>NAME</th><th>CONSISTENCY</th>'
+    + TACTICS.map((t) => '<th title="' + t[1] + '">' + t[1].split(" ")[0] + '</th>').join("")
+    + '<th>CORE</th><th>SOFT</th><th>HARD</th><th>DEVELOPMENT TARGET</th></tr></thead><tbody>';
+  rows.forEach((r) => {
+    const g = r.groupAvg || {};
+    html += '<tr><td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.name || "—") + '</td>'
+      + '<td class="num">' + esc(r.consistencyPct) + '%</td>'
+      + TACTICS.map((t) => '<td class="num">' + esc(r.scores ? r.scores[t[0]] : "") + '</td>').join("")
+      + '<td class="num">' + esc(g.CORE) + '</td><td class="num">' + esc(g.SOFT) + '</td><td class="num">' + esc(g.HARD) + '</td>'
+      + '<td>' + esc(r.developmentTarget) + '</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  $("content").innerHTML = html;
+}
+
+function downloadCSV() {
+  if (!rows.length) return;
+  const q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
+  const header = ["Date", "Name", "Consistency %", "Consistency"]
+    .concat(TACTICS.map((t) => t[1]))
+    .concat(["CORE avg", "SOFT avg", "HARD avg", "Development target", "Signature strengths", "Blind spots", "Record ID"]);
+  const lines = [header.map(q).join(",")];
+  rows.forEach((r) => {
+    const g = r.groupAvg || {};
+    lines.push([fmtDate(r.date), r.name, r.consistencyPct, r.consistencyLabel]
+      .concat(TACTICS.map((t) => (r.scores ? r.scores[t[0]] : "")))
+      .concat([g.CORE, g.SOFT, g.HARD, r.developmentTarget, (r.strengths || []).join(", "), (r.blindSpots || []).join(", "), r.id])
+      .map(q).join(","));
+  });
+  const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "influence-audit-results-" + new Date().toISOString().slice(0, 10) + ".csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>

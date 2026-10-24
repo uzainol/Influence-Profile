@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Influence Self-Audit · Growth Impact Group</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #FFFFFF; }
+  body { -webkit-font-smoothing: antialiased; }
+  button { font: inherit; }
+  input { border-radius: 0; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useRef, useEffect } = React;
+
+/* ============================================================
+   >>> PASTE YOUR FIREBASE CONFIG HERE <<<
+   Firebase console → Project settings → Your apps → Web app.
+   Replace this whole object with the one Firebase gives you.
+   (The same config goes in admin.html.)
+   ============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyArCjlwd1Nmy4XEFUL56mExMMks55iDRIo",
+  authDomain: "influence-profiles.firebaseapp.com",
+  projectId: "influence-profiles",
+  storageBucket: "influence-profiles.firebasestorage.app",
+  messagingSenderId: "771669057347",
+  appId: "1:771669057347:web:bd1099a7e6effcef7b19f6"
+};
+
+function endpointReady() { return FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf("PASTE") === -1; }
+let _db = null;
+function getDb() {
+  if (!_db) {
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    _db = firebase.firestore();
+  }
+  return _db;
+}
+function saveResult(payload) {
+  payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+  return getDb().collection("results").add(payload);
+}
+
+/* ============================================================
+   THE INFLUENCE SELF-AUDIT · PAIRED-COMPARISON (SHORT FORM)
+   33 pairs, balanced circulant (each tactic 6×). Score 0–6,
+   balance point 3. Consistency from circular triads.
+   ============================================================ */
+const C = {
+  white: "#FFFFFF", ink: "#1A1A1A", green: "#36AA54",
+  muted: "#5F656C", grey: "#8A9099", hairline: "#DDE0E3",
+  frame: "#CBD0D4", tint: "#F2F8F4",
+};
+const HEAD = "'Arial Narrow','Roboto Condensed','Helvetica Condensed',Arial,sans-serif";
+const BODY = "Arial,Helvetica,sans-serif";
+
+const TACTICS = [
+  { id: "rational", group: "CORE", num: 1, name: "RATIONAL PERSUASION",
+    items: ["I back up my ideas with facts and evidence.",
+            "I explain the reasons behind what I ask for.",
+            "I prepare examples or analysis before a big decision."] },
+  { id: "consultation", group: "CORE", num: 2, name: "CONSULTATION",
+    items: ["I ask people to help shape a plan before it’s set.",
+            "I ask for input on how things should be done.",
+            "I adjust my approach based on people’s suggestions."] },
+  { id: "collaboration", group: "CORE", num: 3, name: "COLLABORATION",
+    items: ["I offer help or resources to make it easier to say yes.",
+            "I clear obstacles so people can act on what I’ve asked.",
+            "I work alongside people rather than just assigning tasks."] },
+  { id: "inspirational", group: "CORE", num: 4, name: "INSPIRATIONAL APPEALS",
+    items: ["I connect what I ask for to a bigger purpose.",
+            "I speak with conviction to build belief in an idea.",
+            "I help people picture what success looks like."] },
+  { id: "apprising", group: "CORE", num: 5, name: "APPRISING",
+    items: ["I explain how it benefits the other person.",
+            "I show how a task supports someone’s own goals.",
+            "I tailor my reasons to what each person cares about."] },
+  { id: "ingratiation", group: "SOFT", num: 6, name: "INGRATIATION",
+    items: ["I show appreciation before I ask for something.",
+            "I acknowledge people’s strengths openly.",
+            "I put people at ease before raising what I need."] },
+  { id: "personal", group: "SOFT", num: 7, name: "PERSONAL APPEALS",
+    items: ["I ask for help based on goodwill and trust.",
+            "I lean on established relationships when I need help.",
+            "I let people know when something matters to me personally."] },
+  { id: "exchange", group: "SOFT", num: 8, name: "EXCHANGE",
+    items: ["I offer something in return for help.",
+            "I remind people of favours they owe me.",
+            "I propose trades that work for both sides."] },
+  { id: "pressure", group: "HARD", num: 9, name: "PRESSURE",
+    items: ["I use persistent reminders to get action.",
+            "I set firm deadlines and follow up insistently.",
+            "I make the consequences of inaction clear."] },
+  { id: "legitimating", group: "HARD", num: 10, name: "LEGITIMATING",
+    items: ["I point to rules or my role to justify a request.",
+            "I use precedent to show a request is proper.",
+            "I refer to official backing when I need people to comply."] },
+  { id: "coalition", group: "HARD", num: 11, name: "COALITION",
+    items: ["I get others to help persuade someone.",
+            "I line up allies before an important ask.",
+            "I mention who else is on board to strengthen my case."] },
+];
+const TByIndex = TACTICS;
+const GROUP_META = { CORE: { label: "CORE TACTICS" }, SOFT: { label: "SOFT TACTICS" }, HARD: { label: "HARD TACTICS" } };
+
+const RAW_PAIRS = [];
+for (let i = 0; i < 11; i++) for (const d of [1, 2, 3]) { const j = (i + d) % 11; RAW_PAIRS.push([Math.min(i, j), Math.max(i, j)]); }
+const _seen = new Set();
+const PAIRS_IDX = RAW_PAIRS.filter(function (p) { const k = p[0] + "-" + p[1]; if (_seen.has(k)) return false; _seen.add(k); return true; });
+
+function bandFor(score) {
+  if (score <= 1) return { key: "UNDERUSED", label: "UNDERUSED" };
+  if (score <= 4) return { key: "SITUATIONAL", label: "SITUATIONAL" };
+  return { key: "SIGNATURE", label: "SIGNATURE" };
+}
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+function buildSession() {
+  const occ = {};
+  const pairs = PAIRS_IDX.map(function (p) {
+    const i = p[0], j = p[1], ti = TByIndex[i], tj = TByIndex[j];
+    const si = (occ[i] = (occ[i] || 0) + 1) - 1;
+    const sj = (occ[j] = (occ[j] || 0) + 1) - 1;
+    const A = { tacticId: ti.id, text: ti.items[si % 3] };
+    const B = { tacticId: tj.id, text: tj.items[sj % 3] };
+    const flip = Math.random() < 0.5;
+    return { key: ti.id + "__" + tj.id, left: flip ? B : A, right: flip ? A : B };
+  });
+  return shuffle(pairs);
+}
+function computeConsistency(answers) {
+  const win = {};
+  Object.keys(answers).forEach(function (k) { win[k] = answers[k]; });
+  const idOf = function (i) { return TByIndex[i].id; };
+  const pairKey = {};
+  PAIRS_IDX.forEach(function (p) { pairKey[p[0] + "-" + p[1]] = idOf(p[0]) + "__" + idOf(p[1]); });
+  const has = function (i, j) { return pairKey[Math.min(i, j) + "-" + Math.max(i, j)] !== undefined; };
+  const beats = function (i, j) { return win[pairKey[Math.min(i, j) + "-" + Math.max(i, j)]] === idOf(i); };
+  let total = 0, circular = 0;
+  for (let a = 0; a < 11; a++) for (let b = a + 1; b < 11; b++) for (let c = b + 1; c < 11; c++) {
+    if (!(has(a, b) && has(b, c) && has(a, c))) continue;
+    total++;
+    const ab = beats(a, b), bc = beats(b, c), ca = beats(c, a);
+    if ((ab && bc && ca) || (!ab && !bc && !ca)) circular++;
+  }
+  const pct = total === 0 ? 100 : Math.round(((total - circular) / total) * 100);
+  return { totalTriads: total, circular: circular, pct: pct };
+}
+function consistencyRead(pct) {
+  if (pct >= 90) return { label: "HIGHLY CONSISTENT", text: "Your choices were highly coherent — this profile is a stable read of your preferences." };
+  if (pct >= 75) return { label: "CONSISTENT", text: "Your choices were largely coherent, with a few natural trade-off tensions. The overall shape is reliable." };
+  if (pct >= 60) return { label: "MIXED", text: "A fair number of your choices pulled in different directions. The strongest and weakest levers are still meaningful; treat mid-range scores lightly." };
+  return { label: "LOW CONSISTENCY", text: "Many choices contradicted each other — possibly rushed answers or genuinely context-dependent habits. Consider retaking, or read this profile only directionally." };
+}
+
+function Kicker(props) {
+  return (
+    <div style={Object.assign({ display: "flex", alignItems: "center", gap: 8, fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.22em", color: C.green }, props.style)}>
+      <span style={{ width: 8, height: 8, background: C.green, display: "inline-block" }} />
+      <span>{props.children}</span>
+    </div>
+  );
+}
+function Rule(props) { return <div style={Object.assign({ height: 1, background: C.hairline, width: "100%" }, props.style)} />; }
+
+/* ============================================================ INTRO */
+function Intro(props) {
+  return (
+    <div style={{ maxWidth: 620, margin: "0 auto", padding: "56px 28px 72px" }}>
+      <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.32em", color: C.grey }}>GROWTH IMPACT GROUP</div>
+      <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.32em", color: C.grey, marginTop: 4 }}>SELF-ASSESSMENT</div>
+      <h1 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 52, lineHeight: 0.98, color: C.ink, margin: "26px 0 0", letterSpacing: "-0.01em" }}>
+        The Influence<br /><span style={{ color: C.green }}>Self-Audit</span>
+      </h1>
+      <p style={{ fontFamily: BODY, fontSize: 16, color: C.muted, lineHeight: 1.55, margin: "20px 0 0", maxWidth: 500 }}>
+        Which levers of influence do you actually reach for? A forced-choice diagnostic across eleven
+        proactive influence tactics.
+      </p>
+
+      <Rule style={{ margin: "34px 0 26px" }} />
+
+      <Kicker>HOW IT WORKS</Kicker>
+      <p style={{ fontFamily: BODY, fontSize: 15, color: C.ink, lineHeight: 1.6, margin: "14px 0 0" }}>
+        You’ll see <b>two statements at a time</b>. Tap the one that is <b>more true of you</b> — then the
+        next pair appears. Go with your gut; there are no right answers. Because every choice is a
+        trade-off, the result reveals the levers you genuinely favour.
+      </p>
+
+      <div style={{ display: "flex", alignItems: "stretch", gap: 10, marginTop: 22 }}>
+        <div style={{ flex: 1, border: "1px solid " + C.hairline, padding: "14px 14px", fontFamily: BODY, fontSize: 13, color: C.ink }}>
+          I explain the <b>reasons</b> behind what I ask for.
+        </div>
+        <div style={{ display: "flex", alignItems: "center", fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.16em", color: C.green }}>OR</div>
+        <div style={{ flex: 1, border: "1px solid " + C.hairline, padding: "14px 14px", fontFamily: BODY, fontSize: 13, color: C.ink }}>
+          I line up <b>allies</b> before an important ask.
+        </div>
+      </div>
+
+      <div style={{ marginTop: 24 }}>
+        <label style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.18em", color: C.grey }}>YOUR NAME (OPTIONAL)</label>
+        <input value={props.name} onChange={function (e) { props.setName(e.target.value); }} placeholder="e.g. Aisha R."
+          style={{ display: "block", width: "100%", marginTop: 8, padding: "12px 14px", fontFamily: BODY, fontSize: 15, color: C.ink, border: "1px solid " + C.hairline, outline: "none" }} />
+        <p style={{ fontFamily: BODY, fontSize: 11.5, color: C.grey, lineHeight: 1.5, margin: "8px 0 0" }}>
+          Your result is saved privately for your facilitator at Growth Impact Group and used only for this programme. It is not shared with other participants.
+        </p>
+      </div>
+
+      <button onClick={props.onBegin} style={btnPrimary} onMouseDown={function (e) { e.preventDefault(); }}>BEGIN THE AUDIT →</button>
+
+      <p style={{ fontFamily: BODY, fontSize: 11.5, color: C.grey, lineHeight: 1.5, marginTop: 26 }}>
+        33 quick choices · about 2 minutes. Every tactic is compared six times in a balanced design, so
+        each lever scores 0–6. This is a <i>relative</i> profile — it compares your own levers against
+        each other, not against other people. Informed by Yukl’s proactive influence tactics; a
+        development tool, not a validated psychometric test.
+      </p>
+    </div>
+  );
+}
+
+/* ============================================================ AUDIT */
+function Audit(props) {
+  const session = props.session, answers = props.answers, page = props.page;
+  const topRef = useRef(null);
+  useEffect(function () { if (topRef.current) topRef.current.scrollIntoView({ block: "start" }); }, [page]);
+  const total = session.length, pair = session[page], chosen = answers[pair.key];
+  const answeredCount = Object.keys(answers).length;
+  const pct = Math.round((answeredCount / total) * 100);
+
+  function choose(tacticId) {
+    const next = Object.assign({}, answers); next[pair.key] = tacticId;
+    props.setAnswers(next);
+    if (page < total - 1) props.setPage(page + 1); else props.onFinish();
+  }
+  function Card(cp) {
+    const side = cp.side, sel = chosen === side.tacticId;
+    return (
+      <button onClick={function () { choose(side.tacticId); }} onMouseDown={function (e) { e.preventDefault(); }}
+        style={{ display: "flex", alignItems: "center", gap: 14, width: "100%", textAlign: "left", padding: "24px 20px", cursor: "pointer", background: sel ? C.tint : C.white, border: "1px solid " + (sel ? C.green : C.hairline), transition: "all .12s ease" }}>
+        <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: "50%", border: "2px solid " + (sel ? C.green : C.hairline), background: sel ? C.green : C.white, display: "flex", alignItems: "center", justifyContent: "center", color: C.white, fontFamily: HEAD, fontWeight: 700, fontSize: 13 }}>{sel ? "✓" : ""}</span>
+        <span style={{ fontFamily: BODY, fontSize: 16.5, color: C.ink, lineHeight: 1.45 }}>{side.text}</span>
+      </button>
+    );
+  }
+  return (
+    <div ref={topRef} style={{ maxWidth: 560, margin: "0 auto", padding: "28px 28px 40px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.24em", color: C.grey }}>INFLUENCE SELF-AUDIT</span>
+        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.16em", color: C.grey }}>{page + 1} / {total}</span>
+      </div>
+      <div style={{ height: 3, background: C.hairline, marginTop: 8, position: "relative" }}>
+        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: pct + "%", background: C.green, transition: "width .3s ease" }} />
+      </div>
+      <h2 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 30, lineHeight: 1.02, color: C.ink, margin: "40px 0 4px", textAlign: "center" }}>
+        Which is more<br />true of you?
+      </h2>
+      <p style={{ fontFamily: BODY, fontSize: 13, color: C.grey, textAlign: "center", margin: "0 0 26px" }}>Go with your gut.</p>
+      <Card side={pair.left} />
+      <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "10px 0" }}>
+        <span style={{ flex: 1, height: 1, background: C.hairline }} />
+        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.2em", color: C.green }}>OR</span>
+        <span style={{ flex: 1, height: 1, background: C.hairline }} />
+      </div>
+      <Card side={pair.right} />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 26 }}>
+        <button onClick={function () { if (page > 0) props.setPage(page - 1); }} disabled={page === 0} onMouseDown={function (e) { e.preventDefault(); }}
+          style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.12em", background: "none", border: "none", cursor: page === 0 ? "default" : "pointer", color: page === 0 ? C.hairline : C.muted, padding: "10px 0" }}>← BACK</button>
+        {chosen !== undefined && (
+          <button onClick={function () { page < total - 1 ? props.setPage(page + 1) : props.onFinish(); }} onMouseDown={function (e) { e.preventDefault(); }}
+            style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.12em", background: "none", border: "none", cursor: "pointer", color: C.ink, padding: "10px 0" }}>
+            {page < total - 1 ? "NEXT →" : "SEE MY PROFILE →"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================ RESULTS */
+function Results(props) {
+  const answers = props.answers, name = props.name;
+  const wins = {}; TACTICS.forEach(function (t) { wins[t.id] = 0; });
+  Object.keys(answers).forEach(function (k) { const tid = answers[k]; if (tid) wins[tid] += 1; });
+  const scored = TACTICS.map(function (t) { return Object.assign({}, t, { score: wins[t.id], band: bandFor(wins[t.id]) }); });
+  const byDesc = scored.slice().sort(function (a, b) { return b.score - a.score || a.num - b.num; });
+  const signature = byDesc.slice(0, 3);
+  const blind = byDesc.slice().reverse().slice(0, 3);
+  const core = scored.filter(function (s) { return s.group === "CORE"; });
+  const lowestCore = core.slice().sort(function (a, b) { return a.score - b.score || a.num - b.num; })[0];
+  const gMean = function (g) { const gs = scored.filter(function (s) { return s.group === g; }); return gs.reduce(function (a, b) { return a + b.score; }, 0) / gs.length; };
+  const means = { CORE: gMean("CORE"), SOFT: gMean("SOFT"), HARD: gMean("HARD") };
+  const consistency = computeConsistency(answers);
+  const cRead = consistencyRead(consistency.pct);
+
+  const lines = [];
+  if (means.CORE >= 4 && means.CORE >= means.HARD && means.CORE >= means.SOFT) lines.push("You lean heavily on Core tactics — the mark of a sustainable influencer who earns commitment rather than compliance.");
+  if (means.HARD >= 3.7 && means.HARD > means.CORE) lines.push("You reach relatively hard for pressure levers. They may win the moment, but over time they breed resistance — especially with stakeholders you don’t manage.");
+  if (means.SOFT <= 2) lines.push("Soft tactics sit low in your profile, which can make your influence feel transactional; relationships are under-leveraged.");
+  if (means.CORE <= 2) lines.push("Core tactics sit low in your profile — your most effective, evidence-backed tools are being left on the table.");
+  if (lines.length === 0) lines.push("Your profile is fairly even across the three families. Sharpen your lowest Core tactic to turn a situational lever into a signature strength.");
+
+  const cols = [1, 2, 3, 4, 5, 6];
+  const maxMean = Math.max(means.CORE, means.SOFT, means.HARD);
+  function titleCase(s) { return s.charAt(0) + s.slice(1).toLowerCase(); }
+
+  function buildPayload() {
+    const scores = {};
+    scored.forEach(function (s) { scores[s.id] = s.score; });
+    return {
+      name: (name || "").trim().slice(0, 80),
+      consistencyPct: consistency.pct,
+      consistencyLabel: titleCase(cRead.label),
+      scores: scores,
+      groupAvg: { CORE: Number(means.CORE.toFixed(2)), SOFT: Number(means.SOFT.toFixed(2)), HARD: Number(means.HARD.toFixed(2)) },
+      developmentTarget: lowestCore.name,
+      strengths: signature.map(function (s) { return s.name; }),
+      blindSpots: blind.map(function (s) { return s.name; }),
+      answers: Object.assign({}, answers),
+    };
+  }
+
+  const sentRef = useRef(false);
+  const [saveState, setSaveState] = useState(endpointReady() ? "saving" : "off");
+  useEffect(function () {
+    if (sentRef.current) return; sentRef.current = true;
+    if (!endpointReady()) return;
+    saveResult(buildPayload()).then(function () { setSaveState("saved"); }).catch(function () { setSaveState("error"); });
+  }, []);
+
+  const [copied, setCopied] = useState(false);
+  function bandWord(s) { return titleCase(s.band.label); }
+  function buildSummary() {
+    const line = function (s) { return "  " + (s.name + "                      ").slice(0, 22) + " " + s.score + "/6 · " + bandWord(s); };
+    const grp = function (g) { return scored.filter(function (s) { return s.group === g; }).map(line); };
+    let out = ["MY INFLUENCE PROFILE — Influence Self-Audit (GIG)"];
+    if (name) out.push("Name: " + name);
+    out.push("Consistency: " + consistency.pct + "% (" + titleCase(cRead.label) + ")"); out.push("");
+    out.push("CORE"); out = out.concat(grp("CORE"));
+    out.push("SOFT"); out = out.concat(grp("SOFT"));
+    out.push("HARD"); out = out.concat(grp("HARD")); out.push("");
+    out.push("Development target: " + lowestCore.name + " (" + lowestCore.score + "/6, lowest Core)");
+    out.push("Signature strengths: " + signature.map(function (s) { return s.name; }).join(", "));
+    out.push("Blind spots: " + blind.map(function (s) { return s.name; }).join(", ")); out.push("");
+    out.push("Score = head-to-heads won out of 6. Relative (ipsative) profile.");
+    return out.join("\n");
+  }
+  async function copyResults() {
+    const text = buildSummary(); let ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; }
+    catch (e) {
+      try { const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.focus(); ta.select(); ok = document.execCommand("copy"); document.body.removeChild(ta); } catch (e2) { ok = false; }
+    }
+    setCopied(ok); if (ok) setTimeout(function () { setCopied(false); }, 2500);
+  }
+
+  /* ---- PDF: snapshot the report ---- */
+  const reportRef = useRef(null);
+  const [pdfState, setPdfState] = useState("idle");
+  async function downloadPDF() {
+    if (!reportRef.current || pdfState === "working") return;
+    setPdfState("working");
+    try {
+      const canvas = await html2canvas(reportRef.current, { scale: 2, backgroundColor: "#FFFFFF", useCORS: true, windowWidth: reportRef.current.scrollWidth });
+      const img = canvas.toDataURL("image/png");
+      const jsPDF = window.jspdf.jsPDF;
+      const pdf = new jsPDF({ orientation: canvas.width > canvas.height ? "l" : "p", unit: "px", format: [canvas.width, canvas.height] });
+      pdf.addImage(img, "PNG", 0, 0, canvas.width, canvas.height);
+      const fn = (name ? name.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "") + "_" : "") + "influence-profile.pdf";
+      pdf.save(fn);
+      setPdfState("done"); setTimeout(function () { setPdfState("idle"); }, 2500);
+    } catch (e) { setPdfState("error"); setTimeout(function () { setPdfState("idle"); }, 3000); }
+  }
+  const pdfLabel = pdfState === "working" ? "PREPARING PDF…" : pdfState === "done" ? "✓ PDF SAVED" : pdfState === "error" ? "PDF FAILED — TRY AGAIN" : "⤓ DOWNLOAD PDF";
+
+  return (
+    <div style={{ maxWidth: 640, margin: "0 auto" }}>
+      {/* ----- captured report ----- */}
+      <div ref={reportRef} style={{ padding: "44px 28px 34px", background: C.white }}>
+        <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.32em", color: C.grey }}>YOUR RESULT{name ? " · " + name.toUpperCase() : ""}</div>
+        <h1 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 44, lineHeight: 1.0, color: C.ink, margin: "18px 0 0" }}>
+          Your Influence<br /><span style={{ color: C.green }}>Profile</span>
+        </h1>
+        <p style={{ fontFamily: BODY, fontSize: 15, color: C.muted, lineHeight: 1.55, margin: "16px 0 0", maxWidth: 520 }}>
+          Each lever’s score is how many of its six head-to-heads it won (0–6). <b>3 is the balance
+          point.</b> Bands: <b>Underused</b> (0–1), <b>Situational</b> (2–4), <b>Signature</b> (5–6).
+        </p>
+
+        {saveState !== "off" && (
+          <div style={{ marginTop: 16, fontFamily: BODY, fontSize: 12.5, color: saveState === "error" ? "#B23B3B" : C.muted }}>
+            {saveState === "saving" && "Saving your results…"}
+            {saveState === "saved" && "✓ Results submitted."}
+            {saveState === "error" && "Couldn’t submit automatically — use Copy or PDF below."}
+          </div>
+        )}
+
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 20, padding: "16px 18px", border: "1px solid " + C.hairline }}>
+          <div style={{ flexShrink: 0, textAlign: "center" }}>
+            <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 30, color: consistency.pct >= 75 ? C.green : C.ink }}>{consistency.pct}%</div>
+            <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 9.5, letterSpacing: "0.18em", color: C.grey }}>CONSISTENCY</div>
+          </div>
+          <div style={{ width: 1, alignSelf: "stretch", background: C.hairline }} />
+          <div>
+            <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.16em", color: C.ink }}>{cRead.label}</div>
+            <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.muted, lineHeight: 1.5, margin: "5px 0 0" }}>{cRead.text}</p>
+          </div>
+        </div>
+
+        <div style={{ marginTop: 36 }}>
+          {["CORE", "SOFT", "HARD"].map(function (g) {
+            return (
+              <div key={g} style={{ marginBottom: 26 }}>
+                <Kicker style={{ marginBottom: 12 }}>{GROUP_META[g].label}</Kicker>
+                {scored.filter(function (s) { return s.group === g; }).map(function (s) { return <ProfileBar key={s.id} tactic={s} highlight={s.id === lowestCore.id} />; })}
+              </div>
+            );
+          })}
+        </div>
+
+        <Rule style={{ margin: "18px 0 30px" }} />
+        <Kicker>PLOT YOUR PROFILE</Kicker>
+        <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.5, margin: "10px 0 16px" }}>Each row is shaded up to your score. The green line marks 3 — the balance point.</p>
+        {["CORE", "SOFT", "HARD"].map(function (g) {
+          return (
+            <div key={g} style={{ marginBottom: 14 }}>
+              <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 10.5, letterSpacing: "0.22em", color: C.green, margin: "6px 0 8px" }}>{g}</div>
+              {scored.filter(function (s) { return s.group === g; }).map(function (s) {
+                return (
+                  <div key={s.id} style={{ marginBottom: 9 }}>
+                    <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, color: C.ink, letterSpacing: "0.02em", marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
+                      <span>{s.name}{s.id === lowestCore.id && <span style={{ color: C.green, marginLeft: 6, fontSize: 10, letterSpacing: "0.12em" }}>◄ FOCUS</span>}</span>
+                      <span style={{ color: C.grey }}>{s.score}</span>
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 3 }}>
+                      {cols.map(function (n) { const filled = n <= s.score; return <div key={n} style={{ height: 16, background: filled ? (s.id === lowestCore.id ? C.green : C.ink) : C.tint, border: "1px solid " + (filled ? "transparent" : C.hairline), borderRight: n === 3 ? "2px solid " + C.green : undefined }} />; })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+
+        <Rule style={{ margin: "26px 0 30px" }} />
+        <div style={{ background: C.tint, border: "1px solid " + C.green, borderRadius: 10, padding: "22px 22px 24px" }}>
+          <Kicker>YOUR DEVELOPMENT TARGET</Kicker>
+          <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, marginTop: 12 }}>{lowestCore.name}</div>
+          <div style={{ fontFamily: BODY, fontSize: 13, color: C.muted, marginTop: 2 }}>Won {lowestCore.score}/6 head-to-heads · your lowest-scoring Core tactic</div>
+          <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, marginTop: 14, marginBottom: 0 }}>
+            This is your single highest-payoff place to grow. Core tactics build the lasting commitment that Soft and Hard tactics cannot. Carry this one target into your development canvas in the next module.
+          </p>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22, marginTop: 32 }}>
+          <div>
+            <Kicker>SIGNATURE STRENGTHS</Kicker>
+            <p style={{ fontFamily: BODY, fontSize: 12, color: C.muted, margin: "8px 0 12px", lineHeight: 1.4 }}>The style you fall back on automatically.</p>
+            {signature.map(function (s) { return <ListRow key={s.id} name={s.name} score={s.score} />; })}
+          </div>
+          <div>
+            <Kicker>BLIND SPOTS</Kicker>
+            <p style={{ fontFamily: BODY, fontSize: 12, color: C.muted, margin: "8px 0 12px", lineHeight: 1.4 }}>Levers you neglect — your richest ground for growth.</p>
+            {blind.map(function (s) { return <ListRow key={s.id} name={s.name} score={s.score} />; })}
+          </div>
+        </div>
+
+        <Rule style={{ margin: "34px 0 26px" }} />
+        <Kicker>READ YOUR PROFILE</Kicker>
+        <div style={{ marginTop: 14 }}>
+          {lines.map(function (l, i) {
+            return (
+              <div key={i} style={{ display: "flex", gap: 12, marginBottom: 14 }}>
+                <span style={{ width: 7, height: 7, background: C.green, marginTop: 7, flexShrink: 0 }} />
+                <p style={{ fontFamily: BODY, fontSize: 15, color: C.ink, lineHeight: 1.55, margin: 0 }}>{l}</p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", border: "1px solid " + C.hairline, marginTop: 26 }}>
+          {["CORE", "SOFT", "HARD"].map(function (g, i) {
+            return (
+              <div key={g} style={{ padding: "16px 8px", textAlign: "center", borderLeft: i === 0 ? "none" : "1px solid " + C.hairline }}>
+                <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.2em", color: C.grey }}>{g}</div>
+                <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 26, color: means[g] === maxMean ? C.green : C.ink, marginTop: 4 }}>{means[g].toFixed(1)}</div>
+                <div style={{ fontFamily: BODY, fontSize: 10.5, color: C.muted, marginTop: 2 }}>avg / 6</div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ background: C.white, border: "1px solid " + C.hairline, borderRadius: 8, padding: "18px 20px", marginTop: 30 }}>
+          <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.18em", color: C.ink }}>INFLUENCE, NOT MANIPULATION</div>
+          <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.55, margin: "10px 0 0" }}>
+            These tactics are tools, not tricks. Use them only where your claim is true and the interest is genuinely shared — the aim is commitment freely given. Reserve Hard tactics for when they are legitimately warranted. This is a relative profile; best read alongside candid peer feedback.
+          </p>
+        </div>
+      </div>
+
+      {/* ----- actions (not captured) ----- */}
+      <div style={{ padding: "6px 28px 72px" }}>
+        <button onClick={downloadPDF} style={Object.assign({}, btnPrimary, { marginTop: 22 })} onMouseDown={function (e) { e.preventDefault(); }}>{pdfLabel}</button>
+        <button onClick={copyResults} style={Object.assign({}, btnGhost, { marginTop: 12 })} onMouseDown={function (e) { e.preventDefault(); }}>{copied ? "✓ COPIED TO CLIPBOARD" : "⧉ COPY MY RESULTS"}</button>
+        <button onClick={props.onRestart} style={Object.assign({}, btnGhost, { marginTop: 12 })} onMouseDown={function (e) { e.preventDefault(); }}>↻ RETAKE THE AUDIT</button>
+      </div>
+    </div>
+  );
+}
+
+function ProfileBar(props) {
+  const tactic = props.tactic, highlight = props.highlight;
+  const pct = (tactic.score / 6) * 100;
+  const bandColor = tactic.band.key === "SIGNATURE" ? C.green : tactic.band.key === "SITUATIONAL" ? C.ink : C.grey;
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
+        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13.5, letterSpacing: "0.04em", color: C.ink }}>
+          {tactic.name}{highlight && <span style={{ color: C.green, marginLeft: 8, fontSize: 11, letterSpacing: "0.12em" }}>◄ FOCUS</span>}
+        </span>
+        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.1em", color: bandColor }}>{tactic.score} · {tactic.band.label}</span>
+      </div>
+      <div style={{ height: 12, background: C.tint, border: "1px solid " + C.hairline, position: "relative" }}>
+        <div style={{ position: "absolute", left: "50%", top: -2, bottom: -2, width: 2, background: C.green, opacity: 0.5 }} />
+        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: pct + "%", minWidth: tactic.score > 0 ? 3 : 0, background: highlight ? C.green : (bandColor === C.grey ? C.grey : C.ink), transition: "width .4s ease" }} />
+      </div>
+    </div>
+  );
+}
+function ListRow(props) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "9px 0", borderBottom: "1px solid " + C.hairline }}>
+      <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, color: C.ink, letterSpacing: "0.02em", lineHeight: 1.1 }}>{props.name}</span>
+      <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 15, color: C.green, marginLeft: 10, flexShrink: 0 }}>{props.score}</span>
+    </div>
+  );
+}
+const btnPrimary = { marginTop: 34, width: "100%", padding: "16px 24px", fontFamily: HEAD, fontWeight: 700, fontSize: 15, letterSpacing: "0.14em", color: C.white, background: C.ink, border: "none", cursor: "pointer" };
+const btnGhost = { width: "100%", padding: "15px 24px", fontFamily: HEAD, fontWeight: 700, fontSize: 14, letterSpacing: "0.14em", color: C.ink, background: C.white, border: "1px solid " + C.ink, cursor: "pointer" };
+
+function App() {
+  const [screen, setScreen] = useState("intro");
+  const [answers, setAnswers] = useState({});
+  const [page, setPage] = useState(0);
+  const [name, setName] = useState("");
+  const [session, setSession] = useState(buildSession);
+  return (
+    <div style={{ minHeight: "100vh", background: C.white, color: C.ink, fontFamily: BODY }}>
+      {screen === "intro" && <Intro name={name} setName={setName} onBegin={function () { setPage(0); setAnswers({}); setSession(buildSession()); setScreen("audit"); }} />}
+      {screen === "audit" && <Audit session={session} answers={answers} setAnswers={setAnswers} page={page} setPage={setPage} onFinish={function () { setScreen("results"); }} />}
+      {screen === "results" && <Results answers={answers} name={name} onRestart={function () { setAnswers({}); setPage(0); setName(""); setSession(buildSession()); setScreen("intro"); }} />}
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
