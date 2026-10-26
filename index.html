@@ -111,6 +111,72 @@ const TACTICS = [
             "I mention who else is on board to strengthen my case."] },
 ];
 const TByIndex = TACTICS;
+
+/* What each lever is, its strength, and how to use it well (any tactic can be a top strength) */
+const DESCRIPTIONS = {
+  rational: ["You use logic, facts and evidence to show that a request makes sense and can be done.",
+    "It is one of the most widely used and trusted ways to influence, because people can see the reasons for themselves.",
+    "It works best when your evidence is solid and you connect it to what the other person is trying to achieve."],
+  consultation: ["You invite people to help shape a plan or suggest how to improve it before you ask for their support.",
+    "People commit to what they help create, so this builds real ownership rather than reluctant agreement.",
+    "It works best when you’re genuinely open to their ideas and let their input change the plan."],
+  collaboration: ["You offer your help, resources or support to make it easier for someone to say yes.",
+    "It shows you’re invested in the outcome too, which turns a request into a shared effort.",
+    "It works best when you remove a real obstacle for them, and then follow through on what you offered."],
+  inspirational: ["You connect a request to people’s values, ideals and sense of purpose, building enthusiasm for what’s possible.",
+    "It can create energy and commitment that logic alone often can’t reach.",
+    "It works best when you speak with sincere conviction and link the goal to something people already care about."],
+  apprising: ["You explain how doing what you ask will benefit the other person, such as their growth, goals or career.",
+    "It helps people see the personal value in a task, so they act with motivation rather than obligation.",
+    "It works best when the benefit is real and specific to them, not a generic promise."],
+  ingratiation: ["You show genuine appreciation and recognise people’s strengths to build goodwill before or while you ask.",
+    "Warmth and respect make people more open, and they strengthen working relationships over time.",
+    "It works best when it’s sincere and consistent, not saved only for moments when you need something."],
+  personal: ["You ask for support on the basis of friendship, trust or a relationship you’ve built.",
+    "It shows the strength of your connections and can get help quickly when it matters most.",
+    "It works best within real relationships, used thoughtfully so you don’t wear out your goodwill."],
+  exchange: ["You offer something in return, such as a favour, a trade or a promise to help later.",
+    "It creates fair, two-way arrangements, which are especially useful with peers and people you don’t manage.",
+    "It works best when what you offer is valued by the other person and you always keep your side of the deal."],
+  pressure: ["You use firm deadlines, reminders and follow-ups to make sure things get done.",
+    "It brings clarity and urgency, which helps when a task is critical or time is short.",
+    "It works best in small doses, as a backstop to the core tactics rather than your first move."],
+  legitimating: ["You point to rules, policies, your role or precedent to show a request is proper and authorised.",
+    "It gives clarity and confidence, especially when people are unsure whether a request is valid.",
+    "It works best when you explain the reasoning behind the rule, not just the rule itself."],
+  coalition: ["You enlist the support of others, or show who is already on board, to strengthen your case.",
+    "It signals broad backing and can help win over people who are cautious or sceptical.",
+    "It works best when you build genuine alliances, and when the person you’re influencing doesn’t feel outnumbered or cornered."],
+};
+
+/* Development target copy — the target is always the lowest-scoring CORE tactic */
+const GROWTH = {
+  rational: {
+    what: "Building your case with clear reasoning, facts and evidence, so people can see for themselves why a request makes sense.",
+    why: "It is the most widely used and trusted form of influence, and senior leaders and clients often expect it. Without it, even good ideas can be dismissed as opinion. Strengthening it makes your other tactics more credible too.",
+    step: "Before your next important request, prepare three pieces of evidence and link each one to the other person’s goals.",
+  },
+  consultation: {
+    what: "Inviting people to help shape a plan, or to suggest improvements, before you finalise it.",
+    why: "Yukl’s research places consultation among the most effective tactics for gaining real commitment, because people support what they help create. It also brings out better ideas and early warnings you might otherwise miss.",
+    step: "Bring your next plan as a draft and ask, “What would make this work better for you?” Then use at least one suggestion and tell them you did.",
+  },
+  collaboration: {
+    what: "Offering your own help, time or resources so it is easier for someone to do what you ask.",
+    why: "It turns a request into a partnership and shows you are sharing the load. That builds trust quickly, especially with peers and people you don’t manage, and it makes people far more willing to help next time.",
+    step: "With your next request, identify one obstacle the person faces and offer something concrete to remove it.",
+  },
+  inspirational: {
+    what: "Connecting what you ask for to people’s values, ideals and a bigger purpose.",
+    why: "Logic wins agreement, but purpose creates energy. Inspirational appeals are what carry commitment through change, setbacks and extra effort, and they are a hallmark of leaders people want to follow.",
+    step: "Before your next team request, write one sentence on why it matters beyond the task itself, and open with it.",
+  },
+  apprising: {
+    what: "Showing people how doing what you ask will benefit them, such as their growth, goals or career.",
+    why: "It is especially valuable with people you don’t manage, where authority doesn’t apply. When people see what’s in it for them, cooperation becomes their own choice rather than a favour to you.",
+    step: "Before your next ask, find out what the other person is working towards and name one way the task helps them get there.",
+  },
+};
 const GROUP_META = { CORE: { label: "CORE TACTICS" }, SOFT: { label: "SOFT TACTICS" }, HARD: { label: "HARD TACTICS" } };
 
 const RAW_PAIRS = [];
@@ -296,6 +362,8 @@ function Results(props) {
   const scored = TACTICS.map(function (t) { return Object.assign({}, t, { score: wins[t.id], band: bandFor(wins[t.id]) }); });
   const byDesc = scored.slice().sort(function (a, b) { return b.score - a.score || a.num - b.num; });
   const signature = byDesc.slice(0, 3);
+  const topScore = byDesc[0].score;
+  const topStrengths = byDesc.filter(function (s) { return s.score === topScore; }).slice(0, 3);
   const blind = byDesc.slice().reverse().slice(0, 3);
   const core = scored.filter(function (s) { return s.group === "CORE"; });
   const lowestCore = core.slice().sort(function (a, b) { return a.score - b.score || a.num - b.num; })[0];
@@ -455,12 +523,41 @@ function Results(props) {
         })}
 
         <Rule style={{ margin: "26px 0 30px" }} />
-        <div style={{ background: C.tint, border: "1px solid " + C.green, borderRadius: 10, padding: "22px 22px 24px" }}>
+
+        {/* ---- TOP STRENGTH ---- */}
+        <div style={{ border: "1px solid " + C.ink, borderRadius: 10, padding: "22px 22px 24px" }}>
+          <Kicker>{topStrengths.length > 1 ? "YOUR TOP STRENGTHS" : "YOUR TOP STRENGTH"}</Kicker>
+          <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.5, margin: "8px 0 0" }}>
+            {topStrengths.length > 1
+              ? "These levers tied for your highest score. They’re what you reach for most naturally. Keep using them, and use them well."
+              : "This is the lever you reach for most naturally. Keep using it, and use it well."}
+          </p>
+          {topStrengths.map(function (s, i) {
+            const d = DESCRIPTIONS[s.id];
+            return (
+              <div key={s.id} style={{ marginTop: 18, paddingTop: i === 0 ? 0 : 18, borderTop: i === 0 ? "none" : "1px solid " + C.hairline }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+                  <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 24, color: C.ink }}>{s.name}</div>
+                  <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.1em", color: C.green, flexShrink: 0 }}>{s.score}/6</div>
+                </div>
+                <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "10px 0 0" }}>{d[0]}</p>
+                <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "8px 0 0" }}><b>Why it’s a strength:</b> {d[1]}</p>
+                <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "8px 0 0" }}><b>Use it well:</b> {d[2]}</p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ---- DEVELOPMENT TARGET ---- */}
+        <div style={{ background: C.tint, border: "1px solid " + C.green, borderRadius: 10, padding: "22px 22px 24px", marginTop: 22 }}>
           <Kicker>YOUR DEVELOPMENT TARGET</Kicker>
           <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, marginTop: 12 }}>{lowestCore.name}</div>
           <div style={{ fontFamily: BODY, fontSize: 13, color: C.muted, marginTop: 2 }}>Won {lowestCore.score}/6 head-to-heads · your lowest-scoring Core tactic</div>
-          <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, marginTop: 14, marginBottom: 0 }}>
-            This is your single highest-payoff place to grow. Core tactics build the lasting commitment that Soft and Hard tactics cannot. Carry this one target into your development canvas in the next module.
+          <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "14px 0 0" }}><b>What it is:</b> {GROWTH[lowestCore.id].what}</p>
+          <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "8px 0 0" }}><b>Why it’s worth building:</b> {GROWTH[lowestCore.id].why}</p>
+          <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "8px 0 0" }}><b>A first step:</b> {GROWTH[lowestCore.id].step}</p>
+          <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.muted, lineHeight: 1.5, margin: "14px 0 0" }}>
+            Core tactics build lasting commitment, not just compliance. Growing your lowest one is your highest-payoff next step.
           </p>
         </div>
 
