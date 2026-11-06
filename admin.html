@@ -33,6 +33,8 @@
   details.prompts ul { margin: 12px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.6; }
   details.prompts h4 { font-family: var(--head); font-weight: 700; font-size: 13px; letter-spacing: .12em; margin: 16px 0 0; }
   details.prompts p { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 6px 0 0; }
+  .rep { font-family: var(--head); font-weight: 700; font-size: 11px; letter-spacing: .1em; padding: 6px 10px; border: 1px solid var(--ink); background: var(--white); color: var(--ink); cursor: pointer; white-space: nowrap; }
+  .rep:hover { background: var(--ink); color: var(--white); }
   .note { font-size: 13px; color: var(--muted); line-height: 1.5; }
   .err { color: #B23B3B; }
   .stats { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--hair); max-width: 560px; }
@@ -226,12 +228,15 @@ function render() {
   });
 
   html += '<div class="kicker">INDIVIDUAL RESULTS</div><div class="tablewrap"><table><thead><tr>'
-    + '<th>DATE</th><th>SESSION</th><th>NAME</th><th>CONSISTENCY</th><th>OUT OF</th>'
+    + '<th>REPORT</th><th>DATE</th><th>SESSION</th><th>NAME</th><th>CONSISTENCY</th><th>OUT OF</th>'
     + TACTICS.map((t) => '<th title="' + t[1] + '">' + t[1].split(" ")[0] + '</th>').join("")
     + '<th>CORE</th><th>SOFT</th><th>HARD</th><th>DEVELOPMENT FOCUS</th></tr></thead><tbody>';
   rows.forEach((r) => {
     const g = r.groupAvg || {};
-    html += '<tr><td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.session || "—") + '</td><td>' + esc(r.name || "—") + '</td>'
+    const repCell = maxOf(r) === 4
+      ? '<td><button class="rep" data-id="' + esc(r.id) + '">⤓ PDF</button></td>'
+      : '<td class="num" title="Earlier 33-question version: report not available">—</td>';
+    html += '<tr>' + repCell + '<td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.session || "—") + '</td><td>' + esc(r.name || "—") + '</td>'
       + '<td class="num">' + esc(r.consistencyPct) + '%</td>'
       + '<td class="num">' + maxOf(r) + '</td>'
       + TACTICS.map((t) => '<td class="num">' + esc(r.scores ? r.scores[t[0]] : "") + '</td>').join("")
@@ -241,6 +246,20 @@ function render() {
   html += '</tbody></table></div>';
   $("content").innerHTML = html;
 }
+
+/* Rebuild a participant's report: open the audit page with the saved answers in the
+   URL fragment (never sent to any server). The page shows the report and downloads the PDF. */
+function openReport(id) {
+  const r = allRows.find((x) => x.id === id);
+  if (!r || !r.answers) return;
+  const data = { n: r.name || "", s: r.session || "", t: r.date ? r.date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "", a: r.answers };
+  const enc = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(data)))));
+  window.open(new URL("index.html", location.href).href + "#report=" + enc + "&dl=1", "_blank");
+}
+document.getElementById("content").addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest("button.rep");
+  if (b) openReport(b.getAttribute("data-id"));
+});
 
 function downloadCSV() {
   if (!rows.length) return;

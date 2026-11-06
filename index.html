@@ -477,6 +477,7 @@ function Audit(props) {
 /* ============================================================ RESULTS */
 function Results(props) {
   const answers = props.answers, name = props.name;
+  const sessionName = props.facilitator ? (props.sessionName || "") : SESSION;
   const wins = {}; TACTICS.forEach(function (t) { wins[t.id] = 0; });
   Object.keys(answers).forEach(function (k) { const tid = answers[k]; if (tid) wins[tid] += 1; });
   const scored = TACTICS.map(function (t) { return Object.assign({}, t, { score: wins[t.id], band: bandFor(wins[t.id]) }); });
@@ -530,10 +531,10 @@ function Results(props) {
   }
 
   const sentRef = useRef(false);
-  const [saveState, setSaveState] = useState(endpointReady() ? "saving" : "off");
+  const [saveState, setSaveState] = useState(endpointReady() && !props.facilitator ? "saving" : "off");
   useEffect(function () {
     if (sentRef.current) return; sentRef.current = true;
-    if (!endpointReady()) return;
+    if (props.facilitator || !endpointReady()) return;
     saveResult(buildPayload()).then(function () { setSaveState("saved"); }).catch(function () { setSaveState("error"); });
   }, []);
 
@@ -544,7 +545,7 @@ function Results(props) {
     const grp = function (g) { return scored.filter(function (s) { return s.group === g; }).map(line); };
     let out = ["MY INFLUENCE PROFILE — Influence Self-Audit (GIG)"];
     if (name) out.push("Name: " + name);
-    if (SESSION) out.push("Session: " + SESSION);
+    if (sessionName) out.push("Session: " + sessionName);
     out.push("Consistency: " + consistency.pct + "% (" + titleCase(cRead.label) + ")"); out.push("");
     out.push("CORE"); out = out.concat(grp("CORE"));
     out.push("SOFT"); out = out.concat(grp("SOFT"));
@@ -572,23 +573,40 @@ function Results(props) {
     if (!reportRef.current || pdfState === "working") return;
     setPdfState("working");
     try {
-      const canvas = await html2canvas(reportRef.current, { scale: 2, backgroundColor: "#FFFFFF", useCORS: true, windowWidth: reportRef.current.scrollWidth });
-      const img = canvas.toDataURL("image/png");
+      // 1.5x JPEG keeps text sharp at a fraction of the size of a 2x PNG.
+      const canvas = await html2canvas(reportRef.current, { scale: 1.5, backgroundColor: "#FFFFFF", useCORS: true, windowWidth: reportRef.current.scrollWidth });
+      const img = canvas.toDataURL("image/jpeg", 0.8);
       const jsPDF = window.jspdf.jsPDF;
-      const pdf = new jsPDF({ orientation: canvas.width > canvas.height ? "l" : "p", unit: "px", format: [canvas.width, canvas.height] });
-      pdf.addImage(img, "PNG", 0, 0, canvas.width, canvas.height);
+      const w = canvas.width / 1.5, h = canvas.height / 1.5;
+      const pdf = new jsPDF({ orientation: w > h ? "l" : "p", unit: "px", format: [w, h], compress: true });
+      pdf.addImage(img, "JPEG", 0, 0, w, h, undefined, "FAST");
       const fn = (name ? name.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "") + "_" : "") + "influence-profile.pdf";
       pdf.save(fn);
       setPdfState("done"); setTimeout(function () { setPdfState("idle"); }, 2500);
     } catch (e) { setPdfState("error"); setTimeout(function () { setPdfState("idle"); }, 3000); }
   }
+  useEffect(function () {
+    if (!props.autoDownload) return;
+    const t = setTimeout(downloadPDF, 800);
+    return function () { clearTimeout(t); };
+  }, []);
   const pdfLabel = pdfState === "working" ? "PREPARING PDF…" : pdfState === "done" ? "✓ PDF SAVED" : pdfState === "error" ? "PDF FAILED — TRY AGAIN" : "⤓ DOWNLOAD PDF";
 
   return (
     <div style={{ maxWidth: 640, margin: "0 auto" }}>
+      {props.facilitator && (
+        <div style={{ margin: "20px 28px 0", padding: "12px 16px", background: C.tint, border: "1px solid " + C.green, fontFamily: BODY, fontSize: 13, color: C.ink, lineHeight: 1.5 }}>
+          <b>Facilitator copy.</b> This report was rebuilt from the saved answers. It has not been submitted again.
+        </div>
+      )}
       {/* ----- captured report ----- */}
       <div ref={reportRef} style={{ padding: "44px 28px 34px", background: C.white }}>
         <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.32em", color: C.grey }}>YOUR RESULT{name ? " · " + name.toUpperCase() : ""}</div>
+        {(props.takenAt || sessionName) && (
+          <div style={{ fontFamily: BODY, fontSize: 12, color: C.grey, marginTop: 6 }}>
+            {[sessionName ? "Session " + sessionName : "", props.takenAt ? "Taken " + props.takenAt : ""].filter(Boolean).join(" · ")}
+          </div>
+        )}
         <h1 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 44, lineHeight: 1.0, color: C.ink, margin: "18px 0 0" }}>
           Your Influence<br /><span style={{ color: C.green }}>Profile</span>
         </h1>
@@ -766,7 +784,7 @@ function Results(props) {
       <div style={{ padding: "6px 28px 72px" }}>
         <button onClick={downloadPDF} style={Object.assign({}, btnPrimary, { marginTop: 22 })} onMouseDown={function (e) { e.preventDefault(); }}>{pdfLabel}</button>
         <button onClick={copyResults} style={Object.assign({}, btnGhost, { marginTop: 12 })} onMouseDown={function (e) { e.preventDefault(); }}>{copied ? "✓ COPIED TO CLIPBOARD" : "⧉ COPY MY RESULTS"}</button>
-        <button onClick={props.onRestart} style={Object.assign({}, btnGhost, { marginTop: 12 })} onMouseDown={function (e) { e.preventDefault(); }}>↻ RETAKE THE AUDIT</button>
+        {!props.facilitator && <button onClick={props.onRestart} style={Object.assign({}, btnGhost, { marginTop: 12 })} onMouseDown={function (e) { e.preventDefault(); }}>↻ RETAKE THE AUDIT</button>}
       </div>
     </div>
   );
@@ -810,7 +828,29 @@ function ListRow(props) {
 const btnPrimary = { marginTop: 34, width: "100%", padding: "16px 24px", fontFamily: HEAD, fontWeight: 700, fontSize: 15, letterSpacing: "0.14em", color: C.white, background: C.ink, border: "none", cursor: "pointer" };
 const btnGhost = { width: "100%", padding: "15px 24px", fontFamily: HEAD, fontWeight: 700, fontSize: 14, letterSpacing: "0.14em", color: C.ink, background: C.white, border: "1px solid " + C.ink, cursor: "pointer" };
 
+/* A facilitator link from admin.html carries a saved result in the URL fragment,
+   which never leaves the browser: #report=<base64 JSON {n,s,t,a}>[&dl=1] */
+function readReportLink() {
+  try {
+    const h = window.location.hash || "";
+    const m = h.match(/report=([^&]+)/);
+    if (!m) return null;
+    const d = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1])))));
+    if (!d || typeof d.a !== "object") return null;
+    return { name: String(d.n || ""), session: String(d.s || ""), takenAt: String(d.t || ""), answers: d.a, download: /(^|&|#)dl=1/.test(h) };
+  } catch (e) { return null; }
+}
+const REPORT_LINK = readReportLink();
+
 function App() {
+  if (REPORT_LINK) {
+    return (
+      <div style={{ minHeight: "100vh", background: C.white, color: C.ink, fontFamily: BODY }}>
+        <Results answers={REPORT_LINK.answers} name={REPORT_LINK.name} facilitator={true}
+          sessionName={REPORT_LINK.session} takenAt={REPORT_LINK.takenAt} autoDownload={REPORT_LINK.download} />
+      </div>
+    );
+  }
   const [screen, setScreen] = useState("intro");
   const [answers, setAnswers] = useState({});
   const [page, setPage] = useState(0);
