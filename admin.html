@@ -201,7 +201,7 @@ function render() {
   const avg = (fn) => rows.reduce((a, r) => a + fn(r), 0) / n;
   const avgCons = avg((r) => r.consistencyPct || 0);
   const targets = {};
-  rows.forEach((r) => { targets[r.developmentTarget] = (targets[r.developmentTarget] || 0) + 1; });
+  rows.forEach((r) => { String(r.developmentTarget || "").split(", ").filter(Boolean).forEach((t) => { targets[t] = (targets[t] || 0) + 1; }); });
   const topTarget = Object.entries(targets).sort((a, b) => b[1] - a[1])[0];
 
   const sv = $("sessionFilter").value;

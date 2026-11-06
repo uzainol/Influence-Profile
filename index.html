@@ -469,6 +469,15 @@ function Results(props) {
   const blind = byDesc.slice().reverse().slice(0, 3);
   const core = scored.filter(function (s) { return s.group === "CORE"; });
   const lowestCore = core.slice().sort(function (a, b) { return a.score - b.score || a.num - b.num; })[0];
+  // Every lever in the Signature band (3–4); if none reached it, fall back to the top score(s).
+  const signatureBand = byDesc.filter(function (s) { return s.score >= 3; });
+  const strengthFallback = signatureBand.length === 0;
+  const strengthList = strengthFallback ? topStrengths : signatureBand;
+  // Every Core lever in the Underused band (0–1); if none, fall back to the lowest Core lever.
+  const underCore = core.filter(function (s) { return s.score <= 1; }).sort(function (a, b) { return a.score - b.score || a.num - b.num; });
+  const focusFallback = underCore.length === 0;
+  const focusList = focusFallback ? [lowestCore] : underCore;
+  const isFocus = function (id) { return focusList.some(function (f) { return f.id === id; }); };
   const gMean = function (g) { const gs = scored.filter(function (s) { return s.group === g; }); return gs.reduce(function (a, b) { return a + b.score; }, 0) / gs.length; };
   const means = { CORE: gMean("CORE"), SOFT: gMean("SOFT"), HARD: gMean("HARD") };
   const consistency = computeConsistency(answers);
@@ -494,7 +503,7 @@ function Results(props) {
       consistencyLabel: titleCase(cRead.label),
       scores: scores,
       groupAvg: { CORE: Number(means.CORE.toFixed(2)), SOFT: Number(means.SOFT.toFixed(2)), HARD: Number(means.HARD.toFixed(2)) },
-      developmentTarget: lowestCore.name,
+      developmentTarget: focusList.map(function (f) { return f.name; }).join(", "),
       strengths: signature.map(function (s) { return s.name; }),
       blindSpots: blind.map(function (s) { return s.name; }),
       answers: Object.assign({}, answers),
@@ -522,7 +531,8 @@ function Results(props) {
     out.push("CORE"); out = out.concat(grp("CORE"));
     out.push("SOFT"); out = out.concat(grp("SOFT"));
     out.push("HARD"); out = out.concat(grp("HARD")); out.push("");
-    out.push("Development focus: " + lowestCore.name + " (" + lowestCore.score + "/" + MAX_SCORE + ", lowest Core)");
+    out.push((focusList.length > 1 ? "Development focus areas: " : "Development focus: ") + focusList.map(function (f) { return f.name + " (" + f.score + "/" + MAX_SCORE + ")"; }).join(", "));
+    out.push((strengthList.length > 1 ? "Signature strengths: " : "Signature strength: ") + strengthList.map(function (f) { return f.name + " (" + f.score + "/" + MAX_SCORE + ")"; }).join(", "));
     out.push("Most-used levers: " + signature.map(function (s) { return s.name; }).join(", "));
     out.push("Less-used levers: " + blind.map(function (s) { return s.name; }).join(", ")); out.push("");
     out.push("Score = head-to-heads won out of 4. Relative (ipsative) profile.");
@@ -597,7 +607,7 @@ function Results(props) {
             return (
               <div key={g} style={{ marginBottom: 26 }}>
                 <Kicker style={{ marginBottom: 12 }}>{GROUP_META[g].label}</Kicker>
-                {scored.filter(function (s) { return s.group === g; }).map(function (s) { return <ProfileBar key={s.id} tactic={s} highlight={s.id === lowestCore.id} />; })}
+                {scored.filter(function (s) { return s.group === g; }).map(function (s) { return <ProfileBar key={s.id} tactic={s} highlight={isFocus(s.id)} />; })}
               </div>
             );
           })}
@@ -614,11 +624,11 @@ function Results(props) {
                 return (
                   <div key={s.id} style={{ marginBottom: 9 }}>
                     <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, color: C.ink, letterSpacing: "0.02em", marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
-                      <span>{s.name}{s.id === lowestCore.id && <span style={{ color: C.green, marginLeft: 6, fontSize: 10, letterSpacing: "0.12em" }}>◄ FOCUS</span>}</span>
+                      <span>{s.name}{isFocus(s.id) && <span style={{ color: C.green, marginLeft: 6, fontSize: 10, letterSpacing: "0.12em" }}>◄ FOCUS</span>}</span>
                       <span style={{ color: C.grey }}>{s.score}</span>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 3 }}>
-                      {cols.map(function (n) { const filled = n <= s.score; return <div key={n} style={{ height: 16, background: filled ? (s.id === lowestCore.id ? C.green : C.ink) : C.tint, border: "1px solid " + (filled ? "transparent" : C.hairline), borderRight: n === BALANCE ? "2px solid " + C.green : undefined }} />; })}
+                      {cols.map(function (n) { const filled = n <= s.score; return <div key={n} style={{ height: 16, background: filled ? (isFocus(s.id) ? C.green : C.ink) : C.tint, border: "1px solid " + (filled ? "transparent" : C.hairline), borderRight: n === BALANCE ? "2px solid " + C.green : undefined }} />; })}
                     </div>
                   </div>
                 );
@@ -631,12 +641,14 @@ function Results(props) {
 
         {/* ---- TOP STRENGTH ---- */}
         <div style={{ border: "1px solid " + C.ink, borderRadius: 10, padding: "22px 22px 24px" }}>
-          <Kicker>{topStrengths.length > 1 ? "YOUR TOP STRENGTHS" : "YOUR TOP STRENGTH"}</Kicker>
+          <Kicker>{(strengthFallback ? "YOUR TOP STRENGTH" : "YOUR SIGNATURE STRENGTH") + (strengthList.length > 1 ? "S" : "")}</Kicker>
           <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.5, margin: "8px 0 0" }}>
             These are the approaches you tended to choose more often in this audit. They are resources you can use with intention, not fixed labels or proof of how skilled you are. Notice where they work well and when another approach might help.
-            {topStrengths.length > 1 ? " These levers tied for your highest score." : ""}
+            {strengthFallback
+              ? " None of your levers reached the Signature band (3–4), so your highest-scoring " + (strengthList.length > 1 ? "levers are" : "lever is") + " shown here."
+              : " Every lever in your Signature band (3–4) is shown here, highest first."}
           </p>
-          {topStrengths.map(function (s, i) {
+          {strengthList.map(function (s, i) {
             const d = DESCRIPTIONS[s.id];
             return (
               <div key={s.id} style={{ marginTop: 18, paddingTop: i === 0 ? 0 : 18, borderTop: i === 0 ? "none" : "1px solid " + C.hairline }}>
@@ -656,18 +668,33 @@ function Results(props) {
 
         {/* ---- DEVELOPMENT TARGET ---- */}
         <div style={{ background: C.tint, border: "1px solid " + C.green, borderRadius: 10, padding: "22px 22px 24px", marginTop: 22 }}>
-          <Kicker>YOUR DEVELOPMENT FOCUS</Kicker>
+          <Kicker>{focusList.length > 1 ? "YOUR DEVELOPMENT FOCUS AREAS" : "YOUR DEVELOPMENT FOCUS"}</Kicker>
           <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.5, margin: "8px 0 0" }}>
-            This is one Core influence approach you selected less often in the scenarios. It is not a failing or a deficit. Think of it as a useful experiment to expand your options when influencing different people and situations.
+            {focusList.length > 1
+              ? "These are Core influence approaches you selected less often in the scenarios. They are not failings or deficits. Think of them as useful experiments to expand your options when influencing different people and situations."
+              : "This is one Core influence approach you selected less often in the scenarios. It is not a failing or a deficit. Think of it as a useful experiment to expand your options when influencing different people and situations."}
+            {focusFallback
+              ? " None of your Core levers fell in the Underused band (0–1), so your lowest-scoring Core lever is shown."
+              : (focusList.length > 1 ? " Every Core lever in your Underused band (0–1) is shown here, lowest first." : "")}
           </p>
-          <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, marginTop: 16 }}>{lowestCore.name}</div>
-          <div style={{ fontFamily: BODY, fontSize: 13, color: C.muted, marginTop: 2 }}>Won {lowestCore.score}/{MAX_SCORE} head-to-heads · the Core approach you chose least often</div>
-          <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "10px 0 0" }}>{GROWTH[lowestCore.id].what}</p>
-          <CoachLine label="Your coaching review" text={COACH_FOCUS[lowestCore.id][0]} />
-          <CoachLine label="Try this small experiment" text={COACH_FOCUS[lowestCore.id][1]} />
-          <CoachLine label="Reflect" text={COACH_FOCUS[lowestCore.id][2]} italic />
-          <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.muted, lineHeight: 1.5, margin: "14px 0 0" }}>
-            Core tactics build lasting commitment, not just compliance. This is one useful place to experiment next.
+          {focusList.map(function (f, i) {
+            return (
+              <div key={f.id} style={{ marginTop: 18, paddingTop: i === 0 ? 0 : 18, borderTop: i === 0 ? "none" : "1px solid " + C.frame }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+                  <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 24, color: C.ink }}>{f.name}</div>
+                  <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.1em", color: C.muted, flexShrink: 0 }}>{f.score}/{MAX_SCORE}</div>
+                </div>
+                <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>{GROWTH[f.id].what}</p>
+                <CoachLine label="Your coaching review" text={COACH_FOCUS[f.id][0]} />
+                <CoachLine label="Try this small experiment" text={COACH_FOCUS[f.id][1]} />
+                <CoachLine label="Reflect" text={COACH_FOCUS[f.id][2]} italic />
+              </div>
+            );
+          })}
+          <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.muted, lineHeight: 1.5, margin: "16px 0 0" }}>
+            {focusList.length > 1
+              ? "Core tactics build lasting commitment, not just compliance. Pick one of these as a useful place to experiment next."
+              : "Core tactics build lasting commitment, not just compliance. This is one useful place to experiment next."}
           </p>
         </div>
 
