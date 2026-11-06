@@ -302,8 +302,8 @@ function buildSession() {
     const i = p[0], j = p[1], ti = TByIndex[i], tj = TByIndex[j];
     const si = (occ[i] = (occ[i] || 0) + 1) - 1;
     const sj = (occ[j] = (occ[j] || 0) + 1) - 1;
-    const A = { tacticId: ti.id, text: ti.items[si % 3] };
-    const B = { tacticId: tj.id, text: tj.items[sj % 3] };
+    const A = { tacticId: ti.id, text: ti.items[si % 3], icon: ICONS[ti.id][si % 3] };
+    const B = { tacticId: tj.id, text: tj.items[sj % 3], icon: ICONS[tj.id][sj % 3] };
     const flip = Math.random() < 0.5;
     return { key: ti.id + "__" + tj.id, left: flip ? B : A, right: flip ? A : B };
   });
@@ -332,6 +332,19 @@ function consistencyRead(pct) {
   if (pct >= 75) return { label: "CONSISTENT", text: "Your choices were largely coherent, with a few natural trade-off tensions. The overall shape is reliable." };
   if (pct >= 60) return { label: "MIXED", text: "A fair number of your choices pulled in different directions. The strongest and weakest levers are still meaningful; treat mid-range scores lightly." };
   return { label: "VARIED CHOICES", text: "Many of your choices pulled in different directions. This can happen when your habits change from situation to situation, or when answers were quick. Read this profile as a rough guide, and consider retaking it." };
+}
+
+
+/* One line icon per statement (Feather icons, MIT licence), same order as each tactic's items.
+   Every statement has a different icon, so icons never reveal which lever a statement belongs to. */
+const ICONS = {"rational": ["<line x1=\"18\" y1=\"20\" x2=\"18\" y2=\"10\"></line><line x1=\"12\" y1=\"20\" x2=\"12\" y2=\"4\"></line><line x1=\"6\" y1=\"20\" x2=\"6\" y2=\"14\"></line>", "<line x1=\"8\" y1=\"6\" x2=\"21\" y2=\"6\"></line><line x1=\"8\" y1=\"12\" x2=\"21\" y2=\"12\"></line><line x1=\"8\" y1=\"18\" x2=\"21\" y2=\"18\"></line><line x1=\"3\" y1=\"6\" x2=\"3.01\" y2=\"6\"></line><line x1=\"3\" y1=\"12\" x2=\"3.01\" y2=\"12\"></line><line x1=\"3\" y1=\"18\" x2=\"3.01\" y2=\"18\"></line>", "<path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"></path><rect x=\"8\" y=\"2\" width=\"8\" height=\"4\" rx=\"1\" ry=\"1\"></rect>"], "consultation": ["<path d=\"M12 20h9\"></path><path d=\"M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z\"></path>", "<path d=\"M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z\"></path>", "<line x1=\"4\" y1=\"21\" x2=\"4\" y2=\"14\"></line><line x1=\"4\" y1=\"10\" x2=\"4\" y2=\"3\"></line><line x1=\"12\" y1=\"21\" x2=\"12\" y2=\"12\"></line><line x1=\"12\" y1=\"8\" x2=\"12\" y2=\"3\"></line><line x1=\"20\" y1=\"21\" x2=\"20\" y2=\"16\"></line><line x1=\"20\" y1=\"12\" x2=\"20\" y2=\"3\"></line><line x1=\"1\" y1=\"14\" x2=\"7\" y2=\"14\"></line><line x1=\"9\" y1=\"8\" x2=\"15\" y2=\"8\"></line><line x1=\"17\" y1=\"16\" x2=\"23\" y2=\"16\"></line>"], "collaboration": ["<line x1=\"16.5\" y1=\"9.4\" x2=\"7.5\" y2=\"4.21\"></line><path d=\"M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z\"></path><polyline points=\"3.27 6.96 12 12.01 20.73 6.96\"></polyline><line x1=\"12\" y1=\"22.08\" x2=\"12\" y2=\"12\"></line>", "<path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z\"></path>", "<path d=\"M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2\"></path><circle cx=\"9\" cy=\"7\" r=\"4\"></circle><path d=\"M23 21v-2a4 4 0 0 0-3-3.87\"></path><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"></path>"], "inspirational": ["<circle cx=\"12\" cy=\"12\" r=\"10\"></circle><polygon points=\"16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76\"></polygon>", "<path d=\"M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z\"></path><path d=\"M19 10v2a7 7 0 0 1-14 0v-2\"></path><line x1=\"12\" y1=\"19\" x2=\"12\" y2=\"23\"></line><line x1=\"8\" y1=\"23\" x2=\"16\" y2=\"23\"></line>", "<path d=\"M17 18a5 5 0 0 0-10 0\"></path><line x1=\"12\" y1=\"2\" x2=\"12\" y2=\"9\"></line><line x1=\"4.22\" y1=\"10.22\" x2=\"5.64\" y2=\"11.64\"></line><line x1=\"1\" y1=\"18\" x2=\"3\" y2=\"18\"></line><line x1=\"21\" y1=\"18\" x2=\"23\" y2=\"18\"></line><line x1=\"18.36\" y1=\"11.64\" x2=\"19.78\" y2=\"10.22\"></line><line x1=\"23\" y1=\"22\" x2=\"1\" y2=\"22\"></line><polyline points=\"8 6 12 2 16 6\"></polyline>"], "apprising": ["<path d=\"M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2\"></path><circle cx=\"8.5\" cy=\"7\" r=\"4\"></circle><polyline points=\"17 11 19 13 23 9\"></polyline>", "<circle cx=\"12\" cy=\"12\" r=\"10\"></circle><circle cx=\"12\" cy=\"12\" r=\"6\"></circle><circle cx=\"12\" cy=\"12\" r=\"2\"></circle>", "<path d=\"M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4\"></path>"], "ingratiation": ["<path d=\"M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3\"></path>", "<circle cx=\"12\" cy=\"8\" r=\"7\"></circle><polyline points=\"8.21 13.89 7 23 12 20 17 23 15.79 13.88\"></polyline>", "<path d=\"M18 8h1a4 4 0 0 1 0 8h-1\"></path><path d=\"M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z\"></path><line x1=\"6\" y1=\"1\" x2=\"6\" y2=\"4\"></line><line x1=\"10\" y1=\"1\" x2=\"10\" y2=\"4\"></line><line x1=\"14\" y1=\"1\" x2=\"14\" y2=\"4\"></line>"], "personal": ["<path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\"></path>", "<path d=\"M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71\"></path><path d=\"M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71\"></path>", "<path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"></path>"], "exchange": ["<polyline points=\"17 1 21 5 17 9\"></polyline><path d=\"M3 11V9a4 4 0 0 1 4-4h14\"></path><polyline points=\"7 23 3 19 7 15\"></polyline><path d=\"M21 13v2a4 4 0 0 1-4 4H3\"></path>", "<path d=\"M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z\"></path>", "<polyline points=\"16 3 21 3 21 8\"></polyline><line x1=\"4\" y1=\"20\" x2=\"21\" y2=\"3\"></line><polyline points=\"21 16 21 21 16 21\"></polyline><line x1=\"15\" y1=\"15\" x2=\"21\" y2=\"21\"></line><line x1=\"4\" y1=\"4\" x2=\"9\" y2=\"9\"></line>"], "pressure": ["<path d=\"M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9\"></path><path d=\"M13.73 21a2 2 0 0 1-3.46 0\"></path>", "<circle cx=\"12\" cy=\"12\" r=\"10\"></circle><polyline points=\"12 6 12 12 16 14\"></polyline>", "<path d=\"M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z\"></path><line x1=\"12\" y1=\"9\" x2=\"12\" y2=\"13\"></line><line x1=\"12\" y1=\"17\" x2=\"12.01\" y2=\"17\"></line>"], "legitimating": ["<path d=\"M4 19.5A2.5 2.5 0 0 1 6.5 17H20\"></path><path d=\"M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z\"></path>", "<polyline points=\"21 8 21 21 3 21 3 8\"></polyline><rect x=\"1\" y=\"3\" width=\"22\" height=\"5\"></rect><line x1=\"10\" y1=\"12\" x2=\"14\" y2=\"12\"></line>", "<path d=\"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z\"></path>"], "coalition": ["<path d=\"M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2\"></path><circle cx=\"8.5\" cy=\"7\" r=\"4\"></circle><line x1=\"20\" y1=\"8\" x2=\"20\" y2=\"14\"></line><line x1=\"23\" y1=\"11\" x2=\"17\" y2=\"11\"></line>", "<path d=\"M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z\"></path><line x1=\"4\" y1=\"22\" x2=\"4\" y2=\"15\"></line>", "<path d=\"M22 11.08V12a10 10 0 1 1-5.93-9.14\"></path><polyline points=\"22 4 12 14.01 9 11.01\"></polyline>"]};
+
+function LineIcon(props) {
+  return (
+    <svg viewBox="0 0 24 24" width={props.size || 26} height={props.size || 26} fill="none" stroke={props.color || C.ink}
+      strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+      dangerouslySetInnerHTML={{ __html: props.markup }} />
+  );
 }
 
 function Kicker(props) {
@@ -368,12 +381,14 @@ function Intro(props) {
       </p>
 
       <div style={{ display: "flex", alignItems: "stretch", gap: 10, marginTop: 22 }}>
-        <div style={{ flex: 1, border: "1px solid " + C.hairline, padding: "14px 14px", fontFamily: BODY, fontSize: 13, color: C.ink }}>
-          I explain the <b>reasons</b> behind what I ask for.
+        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, border: "1px solid " + C.hairline, padding: "12px", fontFamily: BODY, fontSize: 13, color: C.ink }}>
+          <LineIcon markup={ICONS.rational[1]} size={22} />
+          <span>I explain the <b>reasons</b> behind what I ask for.</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.16em", color: C.green }}>OR</div>
-        <div style={{ flex: 1, border: "1px solid " + C.hairline, padding: "14px 14px", fontFamily: BODY, fontSize: 13, color: C.ink }}>
-          I line up <b>allies</b> before an important ask.
+        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, border: "1px solid " + C.hairline, padding: "12px", fontFamily: BODY, fontSize: 13, color: C.ink }}>
+          <LineIcon markup={ICONS.coalition[1]} size={22} />
+          <span>I line up <b>allies</b> before an important ask.</span>
         </div>
       </div>
 
@@ -416,9 +431,12 @@ function Audit(props) {
     const side = cp.side, sel = chosen === side.tacticId;
     return (
       <button onClick={function () { choose(side.tacticId); }} onMouseDown={function (e) { e.preventDefault(); }}
-        style={{ display: "flex", alignItems: "center", gap: 14, width: "100%", textAlign: "left", padding: "24px 20px", cursor: "pointer", background: sel ? C.tint : C.white, border: "1px solid " + (sel ? C.green : C.hairline), transition: "all .12s ease" }}>
+        style={{ display: "flex", alignItems: "center", gap: 16, width: "100%", textAlign: "left", padding: "18px 18px", cursor: "pointer", background: sel ? C.tint : C.white, border: "1px solid " + (sel ? C.green : C.hairline), transition: "all .12s ease" }}>
+        <span style={{ flexShrink: 0, width: 56, height: 56, borderRadius: 8, border: "1px solid " + (sel ? C.green : C.hairline), background: C.white, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <LineIcon markup={side.icon} size={26} color={sel ? C.green : C.ink} />
+        </span>
+        <span style={{ flex: 1, fontFamily: BODY, fontSize: 16.5, color: C.ink, lineHeight: 1.45 }}>{side.text}</span>
         <span style={{ flexShrink: 0, width: 22, height: 22, borderRadius: "50%", border: "2px solid " + (sel ? C.green : C.hairline), background: sel ? C.green : C.white, display: "flex", alignItems: "center", justifyContent: "center", color: C.white, fontFamily: HEAD, fontWeight: 700, fontSize: 13 }}>{sel ? "✓" : ""}</span>
-        <span style={{ fontFamily: BODY, fontSize: 16.5, color: C.ink, lineHeight: 1.45 }}>{side.text}</span>
       </button>
     );
   }
