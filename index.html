@@ -53,8 +53,8 @@ function saveResult(payload) {
 
 /* ============================================================
    THE INFLUENCE SELF-AUDIT · PAIRED-COMPARISON (SHORT FORM)
-   33 pairs, balanced circulant (each tactic 6×). Score 0–6,
-   balance point 3. Consistency from circular triads.
+   22 pairs, balanced circulant (each tactic 4×). Score 0–4,
+   balance point 2. Consistency from circular triads.
    ============================================================ */
 const C = {
   white: "#FFFFFF", ink: "#1A1A1A", green: "#36AA54",
@@ -180,13 +180,15 @@ const GROWTH = {
 const GROUP_META = { CORE: { label: "CORE TACTICS" }, SOFT: { label: "SOFT TACTICS" }, HARD: { label: "HARD TACTICS" } };
 
 const RAW_PAIRS = [];
-for (let i = 0; i < 11; i++) for (const d of [1, 2, 3]) { const j = (i + d) % 11; RAW_PAIRS.push([Math.min(i, j), Math.max(i, j)]); }
+for (let i = 0; i < 11; i++) for (const d of [1, 2]) { const j = (i + d) % 11; RAW_PAIRS.push([Math.min(i, j), Math.max(i, j)]); }
 const _seen = new Set();
 const PAIRS_IDX = RAW_PAIRS.filter(function (p) { const k = p[0] + "-" + p[1]; if (_seen.has(k)) return false; _seen.add(k); return true; });
 
+const MAX_SCORE = 4;      // head-to-heads per tactic
+const BALANCE = 2;        // MAX_SCORE / 2
 function bandFor(score) {
   if (score <= 1) return { key: "UNDERUSED", label: "UNDERUSED" };
-  if (score <= 4) return { key: "SITUATIONAL", label: "SITUATIONAL" };
+  if (score <= 2) return { key: "SITUATIONAL", label: "SITUATIONAL" };
   return { key: "SIGNATURE", label: "SIGNATURE" };
 }
 function shuffle(arr) {
@@ -287,8 +289,8 @@ function Intro(props) {
       <button onClick={props.onBegin} style={btnPrimary} onMouseDown={function (e) { e.preventDefault(); }}>BEGIN THE AUDIT →</button>
 
       <p style={{ fontFamily: BODY, fontSize: 11.5, color: C.grey, lineHeight: 1.5, marginTop: 26 }}>
-        33 quick choices · about 2 minutes. Every tactic is compared six times in a balanced design, so
-        each lever scores 0–6. This is a <i>relative</i> profile — it compares your own levers against
+        22 quick choices · under 2 minutes. Every tactic is compared four times in a balanced design, so
+        each lever scores 0–4. This is a <i>relative</i> profile — it compares your own levers against
         each other, not against other people. Informed by Yukl’s proactive influence tactics; a
         development tool, not a validated psychometric test.
       </p>
@@ -373,13 +375,13 @@ function Results(props) {
   const cRead = consistencyRead(consistency.pct);
 
   const lines = [];
-  if (means.CORE >= 4 && means.CORE >= means.HARD && means.CORE >= means.SOFT) lines.push("You lean heavily on Core tactics — the mark of a sustainable influencer who earns commitment rather than compliance.");
-  if (means.HARD >= 3.7 && means.HARD > means.CORE) lines.push("You reach relatively hard for pressure levers. They may win the moment, but over time they breed resistance — especially with stakeholders you don’t manage.");
-  if (means.SOFT <= 2) lines.push("Soft tactics sit low in your profile, which can make your influence feel transactional; relationships are under-leveraged.");
-  if (means.CORE <= 2) lines.push("Core tactics sit low in your profile — your most effective, evidence-backed tools are being left on the table.");
+  if (means.CORE >= 2.7 && means.CORE >= means.HARD && means.CORE >= means.SOFT) lines.push("You lean heavily on Core tactics — the mark of a sustainable influencer who earns commitment rather than compliance.");
+  if (means.HARD >= 2.5 && means.HARD > means.CORE) lines.push("You reach relatively hard for pressure levers. They may win the moment, but over time they breed resistance — especially with stakeholders you don’t manage.");
+  if (means.SOFT <= 1.3) lines.push("Soft tactics sit low in your profile, which can make your influence feel transactional; relationships are under-leveraged.");
+  if (means.CORE <= 1.3) lines.push("Core tactics sit low in your profile — your most effective, evidence-backed tools are being left on the table.");
   if (lines.length === 0) lines.push("Your profile is fairly even across the three families. Sharpen your lowest Core tactic to turn a situational lever into a signature strength.");
 
-  const cols = [1, 2, 3, 4, 5, 6];
+  const cols = [1, 2, 3, 4];
   const maxMean = Math.max(means.CORE, means.SOFT, means.HARD);
   function titleCase(s) { return s.charAt(0) + s.slice(1).toLowerCase(); }
 
@@ -411,7 +413,7 @@ function Results(props) {
   const [copied, setCopied] = useState(false);
   function bandWord(s) { return titleCase(s.band.label); }
   function buildSummary() {
-    const line = function (s) { return "  " + (s.name + "                      ").slice(0, 22) + " " + s.score + "/6 · " + bandWord(s); };
+    const line = function (s) { return "  " + (s.name + "                      ").slice(0, 22) + " " + s.score + "/" + MAX_SCORE + " · " + bandWord(s); };
     const grp = function (g) { return scored.filter(function (s) { return s.group === g; }).map(line); };
     let out = ["MY INFLUENCE PROFILE — Influence Self-Audit (GIG)"];
     if (name) out.push("Name: " + name);
@@ -420,10 +422,10 @@ function Results(props) {
     out.push("CORE"); out = out.concat(grp("CORE"));
     out.push("SOFT"); out = out.concat(grp("SOFT"));
     out.push("HARD"); out = out.concat(grp("HARD")); out.push("");
-    out.push("Development target: " + lowestCore.name + " (" + lowestCore.score + "/6, lowest Core)");
+    out.push("Development target: " + lowestCore.name + " (" + lowestCore.score + "/" + MAX_SCORE + ", lowest Core)");
     out.push("Signature strengths: " + signature.map(function (s) { return s.name; }).join(", "));
     out.push("Blind spots: " + blind.map(function (s) { return s.name; }).join(", ")); out.push("");
-    out.push("Score = head-to-heads won out of 6. Relative (ipsative) profile.");
+    out.push("Score = head-to-heads won out of 4. Relative (ipsative) profile.");
     return out.join("\n");
   }
   async function copyResults() {
@@ -463,8 +465,8 @@ function Results(props) {
           Your Influence<br /><span style={{ color: C.green }}>Profile</span>
         </h1>
         <p style={{ fontFamily: BODY, fontSize: 15, color: C.muted, lineHeight: 1.55, margin: "16px 0 0", maxWidth: 520 }}>
-          Each lever’s score is how many of its six head-to-heads it won (0–6). <b>3 is the balance
-          point.</b> Bands: <b>Underused</b> (0–1), <b>Situational</b> (2–4), <b>Signature</b> (5–6).
+          Each lever’s score is how many of its four head-to-heads it won (0–4). <b>2 is the balance
+          point.</b> Bands: <b>Underused</b> (0–1), <b>Situational</b> (2), <b>Signature</b> (3–4).
         </p>
 
         {saveState !== "off" && (
@@ -500,7 +502,7 @@ function Results(props) {
 
         <Rule style={{ margin: "18px 0 30px" }} />
         <Kicker>PLOT YOUR PROFILE</Kicker>
-        <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.5, margin: "10px 0 16px" }}>Each row is shaded up to your score. The green line marks 3 — the balance point.</p>
+        <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.5, margin: "10px 0 16px" }}>Each row is shaded up to your score. The green line marks 2 — the balance point.</p>
         {["CORE", "SOFT", "HARD"].map(function (g) {
           return (
             <div key={g} style={{ marginBottom: 14 }}>
@@ -512,8 +514,8 @@ function Results(props) {
                       <span>{s.name}{s.id === lowestCore.id && <span style={{ color: C.green, marginLeft: 6, fontSize: 10, letterSpacing: "0.12em" }}>◄ FOCUS</span>}</span>
                       <span style={{ color: C.grey }}>{s.score}</span>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 3 }}>
-                      {cols.map(function (n) { const filled = n <= s.score; return <div key={n} style={{ height: 16, background: filled ? (s.id === lowestCore.id ? C.green : C.ink) : C.tint, border: "1px solid " + (filled ? "transparent" : C.hairline), borderRight: n === 3 ? "2px solid " + C.green : undefined }} />; })}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 3 }}>
+                      {cols.map(function (n) { const filled = n <= s.score; return <div key={n} style={{ height: 16, background: filled ? (s.id === lowestCore.id ? C.green : C.ink) : C.tint, border: "1px solid " + (filled ? "transparent" : C.hairline), borderRight: n === BALANCE ? "2px solid " + C.green : undefined }} />; })}
                     </div>
                   </div>
                 );
@@ -538,7 +540,7 @@ function Results(props) {
               <div key={s.id} style={{ marginTop: 18, paddingTop: i === 0 ? 0 : 18, borderTop: i === 0 ? "none" : "1px solid " + C.hairline }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
                   <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 24, color: C.ink }}>{s.name}</div>
-                  <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.1em", color: C.green, flexShrink: 0 }}>{s.score}/6</div>
+                  <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.1em", color: C.green, flexShrink: 0 }}>{s.score}/{MAX_SCORE}</div>
                 </div>
                 <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "10px 0 0" }}>{d[0]}</p>
                 <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "8px 0 0" }}><b>Why it’s a strength:</b> {d[1]}</p>
@@ -552,7 +554,7 @@ function Results(props) {
         <div style={{ background: C.tint, border: "1px solid " + C.green, borderRadius: 10, padding: "22px 22px 24px", marginTop: 22 }}>
           <Kicker>YOUR DEVELOPMENT TARGET</Kicker>
           <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, marginTop: 12 }}>{lowestCore.name}</div>
-          <div style={{ fontFamily: BODY, fontSize: 13, color: C.muted, marginTop: 2 }}>Won {lowestCore.score}/6 head-to-heads · your lowest-scoring Core tactic</div>
+          <div style={{ fontFamily: BODY, fontSize: 13, color: C.muted, marginTop: 2 }}>Won {lowestCore.score}/{MAX_SCORE} head-to-heads · your lowest-scoring Core tactic</div>
           <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "14px 0 0" }}><b>What it is:</b> {GROWTH[lowestCore.id].what}</p>
           <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "8px 0 0" }}><b>Why it’s worth building:</b> {GROWTH[lowestCore.id].why}</p>
           <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "8px 0 0" }}><b>A first step:</b> {GROWTH[lowestCore.id].step}</p>
@@ -593,7 +595,7 @@ function Results(props) {
               <div key={g} style={{ padding: "16px 8px", textAlign: "center", borderLeft: i === 0 ? "none" : "1px solid " + C.hairline }}>
                 <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.2em", color: C.grey }}>{g}</div>
                 <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 26, color: means[g] === maxMean ? C.green : C.ink, marginTop: 4 }}>{means[g].toFixed(1)}</div>
-                <div style={{ fontFamily: BODY, fontSize: 10.5, color: C.muted, marginTop: 2 }}>avg / 6</div>
+                <div style={{ fontFamily: BODY, fontSize: 10.5, color: C.muted, marginTop: 2 }}>avg / {MAX_SCORE}</div>
               </div>
             );
           })}
@@ -619,7 +621,7 @@ function Results(props) {
 
 function ProfileBar(props) {
   const tactic = props.tactic, highlight = props.highlight;
-  const pct = (tactic.score / 6) * 100;
+  const pct = (tactic.score / MAX_SCORE) * 100;
   const bandColor = tactic.band.key === "SIGNATURE" ? C.green : tactic.band.key === "SITUATIONAL" ? C.ink : C.grey;
   return (
     <div style={{ marginBottom: 12 }}>

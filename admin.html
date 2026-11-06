@@ -149,6 +149,10 @@ async function load(db) {
   }
 }
 
+/* 22-question version scores 0–4; the earlier 33-question version scored 0–6. */
+function maxOf(r) { return r.answers && Object.keys(r.answers).length > 22 ? 6 : 4; }
+function norm(r, id) { const v = r.scores ? Number(r.scores[id]) || 0 : 0; return v * 4 / maxOf(r); }
+
 function buildFilter() {
   const sel = $("sessionFilter");
   const current = sel.value !== "__all" ? sel.value : (urlSession || "__all");
@@ -183,25 +187,28 @@ function render() {
     + '<div><b style="font-size:15px;line-height:1.2;padding-top:6px">' + esc(topTarget[0]) + '</b><small>MOST COMMON TARGET (' + topTarget[1] + ')</small></div>'
     + '</div>';
 
-  html += '<div class="kicker">AVERAGE SCORE PER LEVER (0–6, BALANCE POINT 3)</div>';
+  const mixed = rows.some((r) => maxOf(r) === 6);
+  html += '<div class="kicker">AVERAGE SCORE PER LEVER (0–4, BALANCE POINT 2)</div>';
+  if (mixed) html += '<p class="note" style="margin:-4px 0 10px">Includes results from the earlier 33-question version, rescaled from 0–6 to 0–4.</p>';
   ["CORE", "SOFT", "HARD"].forEach((g) => {
     html += '<div class="grp">' + g + '</div>';
     TACTICS.filter((t) => t[2] === g).forEach((t) => {
-      const v = avg((r) => (r.scores && r.scores[t[0]]) || 0);
+      const v = avg((r) => norm(r, t[0]));
       html += '<div class="bar"><span class="lbl">' + t[1] + '</span>'
-        + '<span class="track"><span class="mid"></span><span class="fill" style="width:' + (v / 6 * 100).toFixed(1) + '%"></span></span>'
+        + '<span class="track"><span class="mid"></span><span class="fill" style="width:' + (v / 4 * 100).toFixed(1) + '%"></span></span>'
         + '<span class="val">' + v.toFixed(1) + '</span></div>';
     });
   });
 
   html += '<div class="kicker">INDIVIDUAL RESULTS</div><div class="tablewrap"><table><thead><tr>'
-    + '<th>DATE</th><th>SESSION</th><th>NAME</th><th>CONSISTENCY</th>'
+    + '<th>DATE</th><th>SESSION</th><th>NAME</th><th>CONSISTENCY</th><th>OUT OF</th>'
     + TACTICS.map((t) => '<th title="' + t[1] + '">' + t[1].split(" ")[0] + '</th>').join("")
     + '<th>CORE</th><th>SOFT</th><th>HARD</th><th>DEVELOPMENT TARGET</th></tr></thead><tbody>';
   rows.forEach((r) => {
     const g = r.groupAvg || {};
     html += '<tr><td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.session || "—") + '</td><td>' + esc(r.name || "—") + '</td>'
       + '<td class="num">' + esc(r.consistencyPct) + '%</td>'
+      + '<td class="num">' + maxOf(r) + '</td>'
       + TACTICS.map((t) => '<td class="num">' + esc(r.scores ? r.scores[t[0]] : "") + '</td>').join("")
       + '<td class="num">' + esc(g.CORE) + '</td><td class="num">' + esc(g.SOFT) + '</td><td class="num">' + esc(g.HARD) + '</td>'
       + '<td>' + esc(r.developmentTarget) + '</td></tr>';
@@ -213,13 +220,13 @@ function render() {
 function downloadCSV() {
   if (!rows.length) return;
   const q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
-  const header = ["Date", "Session", "Name", "Consistency %", "Consistency"]
+  const header = ["Date", "Session", "Name", "Consistency %", "Consistency", "Scores out of"]
     .concat(TACTICS.map((t) => t[1]))
     .concat(["CORE avg", "SOFT avg", "HARD avg", "Development target", "Signature strengths", "Blind spots", "Record ID"]);
   const lines = [header.map(q).join(",")];
   rows.forEach((r) => {
     const g = r.groupAvg || {};
-    lines.push([fmtDate(r.date), r.session || "", r.name, r.consistencyPct, r.consistencyLabel]
+    lines.push([fmtDate(r.date), r.session || "", r.name, r.consistencyPct, r.consistencyLabel, maxOf(r)]
       .concat(TACTICS.map((t) => (r.scores ? r.scores[t[0]] : "")))
       .concat([g.CORE, g.SOFT, g.HARD, r.developmentTarget, (r.strengths || []).join(", "), (r.blindSpots || []).join(", "), r.id])
       .map(q).join(","));
