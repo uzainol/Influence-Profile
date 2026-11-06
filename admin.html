@@ -28,6 +28,11 @@
   .btn.ghost { background: var(--white); color: var(--ink); }
   .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 22px; }
   select { font-family: var(--head); font-weight: 700; font-size: 13px; letter-spacing: .06em; padding: 11px 12px; border: 1px solid var(--ink); background: var(--white); color: var(--ink); border-radius: 0; }
+  details.prompts { margin-top: 22px; border: 1px solid var(--hair); padding: 14px 18px; max-width: 760px; }
+  details.prompts summary { cursor: pointer; font-family: var(--head); font-weight: 700; font-size: 12px; letter-spacing: .22em; color: var(--green); }
+  details.prompts ul { margin: 12px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.6; }
+  details.prompts h4 { font-family: var(--head); font-weight: 700; font-size: 13px; letter-spacing: .12em; margin: 16px 0 0; }
+  details.prompts p { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 6px 0 0; }
   .note { font-size: 13px; color: var(--muted); line-height: 1.5; }
   .err { color: #B23B3B; }
   .stats { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--hair); max-width: 560px; }
@@ -68,6 +73,26 @@
       <button class="btn ghost" id="refresh">↻ REFRESH</button>
       <button class="btn ghost" id="signOut">SIGN OUT</button>
     </div>
+    <details class="prompts">
+      <summary>■ FACILITATOR PROMPTS FOR THE DEBRIEF</summary>
+      <h4>STRENGTHS AND DEVELOPMENT FOCUS</h4>
+      <ul>
+        <li>Where in your work have you seen this strength help you?</li>
+        <li>When might this same approach be less helpful, even with good intentions?</li>
+        <li>What situation in the next seven days could be a safe place to try your development lever?</li>
+        <li>What is one small behaviour you can change, rather than a whole personality trait?</li>
+      </ul>
+      <h4>AFTER THEY TRY IT</h4>
+      <ul>
+        <li>What did the other person do or say?</li>
+        <li>What did you learn?</li>
+        <li>What might you adapt next time?</li>
+      </ul>
+      <h4>TONE</h4>
+      <p>For Hard levers, avoid character judgments. Discuss context, consent, proportionality and the effect on trust.</p>
+      <p>When scores look mixed or the consistency rating is low, ask about differing real-life situations before attributing the pattern to careless responding.</p>
+      <p>Scores are relative to each person’s own choices. They describe stated preferences, not influence skill.</p>
+    </details>
     <div id="content"></div>
   </div>
 
@@ -184,7 +209,7 @@ function render() {
   html += '<div class="stats">'
     + '<div><b>' + n + '</b><small>PARTICIPANTS</small></div>'
     + '<div><b>' + Math.round(avgCons) + '%</b><small>AVG CONSISTENCY</small></div>'
-    + '<div><b style="font-size:15px;line-height:1.2;padding-top:6px">' + esc(topTarget[0]) + '</b><small>MOST COMMON TARGET (' + topTarget[1] + ')</small></div>'
+    + '<div><b style="font-size:15px;line-height:1.2;padding-top:6px">' + esc(topTarget[0]) + '</b><small>MOST COMMON FOCUS (' + topTarget[1] + ')</small></div>'
     + '</div>';
 
   const mixed = rows.some((r) => maxOf(r) === 6);
@@ -203,7 +228,7 @@ function render() {
   html += '<div class="kicker">INDIVIDUAL RESULTS</div><div class="tablewrap"><table><thead><tr>'
     + '<th>DATE</th><th>SESSION</th><th>NAME</th><th>CONSISTENCY</th><th>OUT OF</th>'
     + TACTICS.map((t) => '<th title="' + t[1] + '">' + t[1].split(" ")[0] + '</th>').join("")
-    + '<th>CORE</th><th>SOFT</th><th>HARD</th><th>DEVELOPMENT TARGET</th></tr></thead><tbody>';
+    + '<th>CORE</th><th>SOFT</th><th>HARD</th><th>DEVELOPMENT FOCUS</th></tr></thead><tbody>';
   rows.forEach((r) => {
     const g = r.groupAvg || {};
     html += '<tr><td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.session || "—") + '</td><td>' + esc(r.name || "—") + '</td>'
@@ -222,7 +247,7 @@ function downloadCSV() {
   const q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
   const header = ["Date", "Session", "Name", "Consistency %", "Consistency", "Scores out of"]
     .concat(TACTICS.map((t) => t[1]))
-    .concat(["CORE avg", "SOFT avg", "HARD avg", "Development target", "Signature strengths", "Blind spots", "Record ID"]);
+    .concat(["CORE avg", "SOFT avg", "HARD avg", "Development focus", "Most-used levers", "Less-used levers", "Record ID"]);
   const lines = [header.map(q).join(",")];
   rows.forEach((r) => {
     const g = r.groupAvg || {};

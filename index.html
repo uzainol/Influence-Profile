@@ -150,6 +150,106 @@ const DESCRIPTIONS = {
 };
 
 /* Development target copy — the target is always the lowest-scoring CORE tactic */
+
+/* Coaching reviews (participant-facing): [review, stretch, try this, reflect] */
+const COACH_STRENGTH = {
+  "rational": [
+    "You seem to reach first for reasons people can examine and test. That can help others feel informed rather than simply persuaded, especially when a decision is complex or carries risk. It is a useful starting point, not a requirement to have an answer to every objection.",
+    "A well-supported case may still leave someone feeling unheard. Alongside the evidence, make room for their concerns, priorities and practical realities.",
+    "For your next request, offer one strong piece of evidence, link it to the other person’s goal, then ask: “What would you still need to feel comfortable with this?”",
+    "When does more evidence help, and when would listening help more?"
+  ],
+  "consultation": [
+    "You appear comfortable giving others a voice in how things take shape. Inviting input can strengthen ownership and surface ideas you would not have reached alone. It is a valuable way of showing respect for other people’s experience.",
+    "Consultation works best when the invitation is genuine. It is okay to be clear about what is already decided, what can still change and when a decision needs to be made.",
+    "Bring your next proposal as a draft. Name one part you are open to changing, ask for ideas and show how the feedback influenced your decision.",
+    "Where could involving someone earlier lead to a better outcome?"
+  ],
+  "collaboration": [
+    "You tend to make your requests easier to act on by offering help, resources or practical support. Others may experience this as a willingness to share the load, rather than asking them to solve everything alone.",
+    "Your generosity is most useful when it is realistic. Support should remove obstacles without overpromising or quietly taking over the other person’s responsibility.",
+    "Before your next request, ask: “What might make this difficult?” Offer one specific, manageable form of support and agree who will do what.",
+    "Does my help strengthen the other person’s ability to act, or make them dependent on me?"
+  ],
+  "inspirational": [
+    "You often look beyond the task itself and connect people with a meaningful reason to act. That can help create energy and commitment, particularly when the work is difficult or requires persistence.",
+    "Purpose is personal. What motivates you may not be what matters most to someone else. Pair an inspiring message with a practical first step and listen for their own reasons to care.",
+    "In your next team conversation, explain who benefits from the outcome, then invite others to share what would make the goal meaningful to them.",
+    "Whose sense of purpose am I speaking to: mine, theirs or a genuinely shared one?"
+  ],
+  "apprising": [
+    "You seem attentive to how a request may support the other person’s aspirations. Helping someone see a genuine benefit can make cooperation feel relevant to their own development, rather than like a favour owed to you.",
+    "Avoid assuming you know what people value. A benefit is persuasive only when it is real, specific and meaningful to them.",
+    "Ask a colleague what they are currently hoping to learn or achieve. When there is a truthful connection, explain how your request may contribute to that goal.",
+    "Have I checked what matters to this person, or am I deciding for them?"
+  ],
+  "ingratiation": [
+    "Your choices suggest that appreciation and goodwill are part of how you build influence. When recognition is specific and sincere, it can help people feel seen and respected, creating a more trusting relationship over time.",
+    "The most credible appreciation is not conditional on getting a yes. Keep noticing contributions in everyday moments, including when you are not making a request.",
+    "Thank someone for a concrete contribution this week without asking for anything in return. Notice how the interaction feels on both sides.",
+    "Would my appreciation still feel genuine if I did not need their support?"
+  ],
+  "personal": [
+    "You may find it natural to draw on trust and relationships when asking for support. There is strength in being willing to ask for help and in recognising that professional relationships can carry genuine care and reciprocity.",
+    "Close relationships deserve extra care. Give people room to decline without guilt, and avoid asking them to put their own needs or responsibilities aside simply because they know you.",
+    "When asking someone you know well, say why you value their support and make it explicit that a no is acceptable.",
+    "Would this person feel safe giving me an honest answer?"
+  ],
+  "exchange": [
+    "You seem comfortable making mutual benefit explicit. Clear, fair exchanges can be especially useful between peers when neither person has formal authority over the other.",
+    "A fair arrangement is one both people choose freely. Check that the offer is genuinely valuable to them and that the commitment is manageable on each side.",
+    "For a suitable peer request, describe what you can offer in return, ask what would be useful to them and agree on expectations openly.",
+    "Does this exchange feel worthwhile and fair from their point of view?"
+  ],
+  "pressure": [
+    "You may be willing to create clarity through deadlines, reminders and firm follow-through. Used thoughtfully, this can help protect important commitments when time is short or consequences are serious.",
+    "Urgency can also feel stressful if others do not understand the reason or have little room to raise difficulties. Before increasing pressure, ask what is blocking progress and what support is possible.",
+    "For an important deadline, explain what makes it necessary, ask about obstacles and agree on one clear follow-up point.",
+    "Am I creating helpful accountability, or pressure that could reduce openness and trust?"
+  ],
+  "legitimating": [
+    "You tend to look to roles, policies and agreed procedures when making a request. This can provide welcome certainty and fairness, particularly when a decision needs to be defensible or consistent.",
+    "Rules are easier to work with when their purpose is understood. Where there is room for discretion, make that visible; where there is not, still invite questions about how to carry out the requirement.",
+    "The next time you cite a policy, explain the purpose behind it and ask: “What would help us put this into practice fairly?”",
+    "Did I help people understand the decision, or only establish that I had authority?"
+  ],
+  "coalition": [
+    "You recognise that support from several people can build confidence and momentum. Genuine alliances can be especially helpful when change depends on coordination across teams or stakeholders.",
+    "People may become reluctant to disagree if they feel outnumbered. Share support transparently, without implying that the conversation is already closed or that dissent is disloyal.",
+    "When presenting a group-backed proposal, explain who has contributed and explicitly invite questions, reservations and alternative views.",
+    "Would someone with a different opinion still feel heard and respected?"
+  ]
+};
+
+/* Development-focus reviews: [review, small experiment, reflect] */
+const COACH_FOCUS = {
+  "rational": [
+    "Your results suggest that a logical, evidence-led case was not your first choice as often as some other approaches. This is a preference signal, not a verdict on your ability. You may already be effective at building enthusiasm, connection or momentum; adding concise evidence can make those approaches easier for others to trust.",
+    "Choose one upcoming request. Prepare one reliable fact or example, explain the practical implication and connect it to what the listener is trying to achieve. You do not need a long presentation.",
+    "What would this person need to see or understand before the request feels credible?"
+  ],
+  "consultation": [
+    "You may be accustomed to arriving with a plan or moving quickly towards a decision. That can be useful, particularly under pressure. This result simply invites you to experiment with involving others a little earlier, while there is still something meaningful they can influence.",
+    "Share the next plan as a draft and ask: “What am I missing?” Adopt one workable suggestion, or explain respectfully why it cannot be used.",
+    "Which part of my next decision is genuinely open to other people’s input?"
+  ],
+  "collaboration": [
+    "You may be clear about what needs to happen without always offering practical help alongside the request. This does not mean you are unsupportive. It may mean there is room to notice the barriers others face, especially those you cannot see from your own position.",
+    "In your next request, ask: “What could make this difficult to complete?” Offer one realistic resource, introduction, bit of time or practical adjustment.",
+    "What am I assuming is easy for them that might actually be difficult?"
+  ],
+  "inspirational": [
+    "You may rely more on clarity, facts or deadlines than on explaining why the work matters. Those approaches have value. A brief link to purpose can provide an additional reason for people to stay engaged, especially when the task is demanding.",
+    "Before your next team request, write one honest sentence about who will benefit and why the outcome matters. Say it, then ask others what matters to them about the goal.",
+    "What meaningful outcome sits behind the task I am asking people to do?"
+  ],
+  "apprising": [
+    "You may focus on what the organisation or team needs, without always naming a possible benefit for the person you are asking. That is understandable when workloads are busy. This lever is about understanding someone’s legitimate goals, not inventing rewards or making a transactional promise.",
+    "Before your next request, ask what the person hopes to develop or achieve. If there is a real connection to the task, make it clear. If there is not, be transparent.",
+    "Am I speaking only about what I need, or have I understood what matters to them?"
+  ]
+};
+
 const GROWTH = {
   rational: {
     what: "Building your case with clear reasoning, facts and evidence, so people can see for themselves why a request makes sense.",
@@ -231,7 +331,7 @@ function consistencyRead(pct) {
   if (pct >= 90) return { label: "HIGHLY CONSISTENT", text: "Your choices were highly coherent — this profile is a stable read of your preferences." };
   if (pct >= 75) return { label: "CONSISTENT", text: "Your choices were largely coherent, with a few natural trade-off tensions. The overall shape is reliable." };
   if (pct >= 60) return { label: "MIXED", text: "A fair number of your choices pulled in different directions. The strongest and weakest levers are still meaningful; treat mid-range scores lightly." };
-  return { label: "LOW CONSISTENCY", text: "Many choices contradicted each other — possibly rushed answers or genuinely context-dependent habits. Consider retaking, or read this profile only directionally." };
+  return { label: "VARIED CHOICES", text: "Many of your choices pulled in different directions. This can happen when your habits change from situation to situation, or when answers were quick. Read this profile as a rough guide, and consider retaking it." };
 }
 
 function Kicker(props) {
@@ -422,9 +522,9 @@ function Results(props) {
     out.push("CORE"); out = out.concat(grp("CORE"));
     out.push("SOFT"); out = out.concat(grp("SOFT"));
     out.push("HARD"); out = out.concat(grp("HARD")); out.push("");
-    out.push("Development target: " + lowestCore.name + " (" + lowestCore.score + "/" + MAX_SCORE + ", lowest Core)");
-    out.push("Signature strengths: " + signature.map(function (s) { return s.name; }).join(", "));
-    out.push("Blind spots: " + blind.map(function (s) { return s.name; }).join(", ")); out.push("");
+    out.push("Development focus: " + lowestCore.name + " (" + lowestCore.score + "/" + MAX_SCORE + ", lowest Core)");
+    out.push("Most-used levers: " + signature.map(function (s) { return s.name; }).join(", "));
+    out.push("Less-used levers: " + blind.map(function (s) { return s.name; }).join(", ")); out.push("");
     out.push("Score = head-to-heads won out of 4. Relative (ipsative) profile.");
     return out.join("\n");
   }
@@ -467,6 +567,9 @@ function Results(props) {
         <p style={{ fontFamily: BODY, fontSize: 15, color: C.muted, lineHeight: 1.55, margin: "16px 0 0", maxWidth: 520 }}>
           Each lever’s score is how many of its four head-to-heads it won (0–4). <b>2 is the balance
           point.</b> Bands: <b>Underused</b> (0–1), <b>Situational</b> (2), <b>Signature</b> (3–4).
+        </p>
+        <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.55, margin: "12px 0 0", maxWidth: 560, paddingLeft: 12, borderLeft: "2px solid " + C.green }}>
+          <b style={{ color: C.ink }}>Reading your results.</b> Your 22 choices share out a fixed 22 points across 11 levers, so a low score is relative to your other choices. The audit describes the preferences you showed in this exercise; it does not measure your actual influence skill or effectiveness. Check what you read against real examples before drawing conclusions.
         </p>
 
         {saveState !== "off" && (
@@ -530,9 +633,8 @@ function Results(props) {
         <div style={{ border: "1px solid " + C.ink, borderRadius: 10, padding: "22px 22px 24px" }}>
           <Kicker>{topStrengths.length > 1 ? "YOUR TOP STRENGTHS" : "YOUR TOP STRENGTH"}</Kicker>
           <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.5, margin: "8px 0 0" }}>
-            {topStrengths.length > 1
-              ? "These levers tied for your highest score. They’re what you reach for most naturally. Keep using them, and use them well."
-              : "This is the lever you reach for most naturally. Keep using it, and use it well."}
+            These are the approaches you tended to choose more often in this audit. They are resources you can use with intention, not fixed labels or proof of how skilled you are. Notice where they work well and when another approach might help.
+            {topStrengths.length > 1 ? " These levers tied for your highest score." : ""}
           </p>
           {topStrengths.map(function (s, i) {
             const d = DESCRIPTIONS[s.id];
@@ -542,9 +644,11 @@ function Results(props) {
                   <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 24, color: C.ink }}>{s.name}</div>
                   <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.1em", color: C.green, flexShrink: 0 }}>{s.score}/{MAX_SCORE}</div>
                 </div>
-                <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "10px 0 0" }}>{d[0]}</p>
-                <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "8px 0 0" }}><b>Why it’s a strength:</b> {d[1]}</p>
-                <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "8px 0 0" }}><b>Use it well:</b> {d[2]}</p>
+                <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>{d[0]}</p>
+                <CoachLine label="Your coaching review" text={COACH_STRENGTH[s.id][0]} />
+                <CoachLine label="A useful stretch" text={COACH_STRENGTH[s.id][1]} />
+                <CoachLine label="Try this" text={COACH_STRENGTH[s.id][2]} />
+                <CoachLine label="Reflect" text={COACH_STRENGTH[s.id][3]} italic />
               </div>
             );
           })}
@@ -552,26 +656,30 @@ function Results(props) {
 
         {/* ---- DEVELOPMENT TARGET ---- */}
         <div style={{ background: C.tint, border: "1px solid " + C.green, borderRadius: 10, padding: "22px 22px 24px", marginTop: 22 }}>
-          <Kicker>YOUR DEVELOPMENT TARGET</Kicker>
-          <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, marginTop: 12 }}>{lowestCore.name}</div>
-          <div style={{ fontFamily: BODY, fontSize: 13, color: C.muted, marginTop: 2 }}>Won {lowestCore.score}/{MAX_SCORE} head-to-heads · your lowest-scoring Core tactic</div>
-          <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "14px 0 0" }}><b>What it is:</b> {GROWTH[lowestCore.id].what}</p>
-          <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "8px 0 0" }}><b>Why it’s worth building:</b> {GROWTH[lowestCore.id].why}</p>
-          <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "8px 0 0" }}><b>A first step:</b> {GROWTH[lowestCore.id].step}</p>
+          <Kicker>YOUR DEVELOPMENT FOCUS</Kicker>
+          <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.5, margin: "8px 0 0" }}>
+            This is one Core influence approach you selected less often in the scenarios. It is not a failing or a deficit. Think of it as a useful experiment to expand your options when influencing different people and situations.
+          </p>
+          <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, marginTop: 16 }}>{lowestCore.name}</div>
+          <div style={{ fontFamily: BODY, fontSize: 13, color: C.muted, marginTop: 2 }}>Won {lowestCore.score}/{MAX_SCORE} head-to-heads · the Core approach you chose least often</div>
+          <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "10px 0 0" }}>{GROWTH[lowestCore.id].what}</p>
+          <CoachLine label="Your coaching review" text={COACH_FOCUS[lowestCore.id][0]} />
+          <CoachLine label="Try this small experiment" text={COACH_FOCUS[lowestCore.id][1]} />
+          <CoachLine label="Reflect" text={COACH_FOCUS[lowestCore.id][2]} italic />
           <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.muted, lineHeight: 1.5, margin: "14px 0 0" }}>
-            Core tactics build lasting commitment, not just compliance. Growing your lowest one is your highest-payoff next step.
+            Core tactics build lasting commitment, not just compliance. This is one useful place to experiment next.
           </p>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22, marginTop: 32 }}>
           <div>
-            <Kicker>SIGNATURE STRENGTHS</Kicker>
-            <p style={{ fontFamily: BODY, fontSize: 12, color: C.muted, margin: "8px 0 12px", lineHeight: 1.4 }}>The style you fall back on automatically.</p>
+            <Kicker>MOST-USED LEVERS</Kicker>
+            <p style={{ fontFamily: BODY, fontSize: 12, color: C.muted, margin: "8px 0 12px", lineHeight: 1.4 }}>Approaches you chose most often in this audit.</p>
             {signature.map(function (s) { return <ListRow key={s.id} name={s.name} score={s.score} />; })}
           </div>
           <div>
-            <Kicker>BLIND SPOTS</Kicker>
-            <p style={{ fontFamily: BODY, fontSize: 12, color: C.muted, margin: "8px 0 12px", lineHeight: 1.4 }}>Levers you neglect — your richest ground for growth.</p>
+            <Kicker>LESS-USED LEVERS</Kicker>
+            <p style={{ fontFamily: BODY, fontSize: 12, color: C.muted, margin: "8px 0 12px", lineHeight: 1.4 }}>Approaches you chose less often in this audit.</p>
             {blind.map(function (s) { return <ListRow key={s.id} name={s.name} score={s.score} />; })}
           </div>
         </div>
@@ -616,6 +724,14 @@ function Results(props) {
         <button onClick={props.onRestart} style={Object.assign({}, btnGhost, { marginTop: 12 })} onMouseDown={function (e) { e.preventDefault(); }}>↻ RETAKE THE AUDIT</button>
       </div>
     </div>
+  );
+}
+
+function CoachLine(props) {
+  return (
+    <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.55, margin: "10px 0 0", fontStyle: props.italic ? "italic" : "normal" }}>
+      <b style={{ fontStyle: "normal", color: C.ink }}>{props.label}.</b> {props.text}
+    </p>
   );
 }
 
