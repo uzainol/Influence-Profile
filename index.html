@@ -357,10 +357,204 @@ function Kicker(props) {
 }
 function Rule(props) { return <div style={Object.assign({ height: 1, background: C.hairline, width: "100%" }, props.style)} />; }
 
+
+/* ============================================================ FRONT PAGE */
+const GIG_LOGO = "data:image/png;base64,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";
+const UI_ICONS = {"users": "<path d=\"M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2\"></path><circle cx=\"9\" cy=\"7\" r=\"4\"></circle><path d=\"M23 21v-2a4 4 0 0 0-3-3.87\"></path><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"></path>", "globe": "<circle cx=\"12\" cy=\"12\" r=\"10\"></circle><line x1=\"2\" y1=\"12\" x2=\"22\" y2=\"12\"></line><path d=\"M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z\"></path>", "trending-up": "<polyline points=\"23 6 13.5 15.5 8.5 10.5 1 18\"></polyline><polyline points=\"17 6 23 6 23 12\"></polyline>", "check": "<polyline points=\"20 6 9 17 4 12\"></polyline>", "lock": "<rect x=\"3\" y=\"11\" width=\"18\" height=\"11\" rx=\"2\" ry=\"2\"></rect><path d=\"M7 11V7a5 5 0 0 1 10 0v4\"></path>"};
+
+function Section(props) {
+  return (
+    <section style={{ padding: "44px 0 0" }}>
+      <Kicker>{props.kicker}</Kicker>
+      <h2 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: "clamp(28px, 7vw, 38px)", lineHeight: 1.04, color: C.ink, margin: "12px 0 0" }}>{props.title}</h2>
+      {props.lead && <p style={{ fontFamily: BODY, fontSize: 16, color: C.muted, lineHeight: 1.6, margin: "14px 0 0" }}>{props.lead}</p>}
+      {props.children}
+    </section>
+  );
+}
+const cols3 = { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 28, marginTop: 26 };
+const colHead = { fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 20, color: C.ink, margin: "12px 0 0" };
+const colText = { fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "6px 0 0" };
+const smallLabel = { fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.22em", color: C.green };
+
+function Landing(props) {
+  const families = [
+    ["CORE · 5 TACTICS", "Commitment builders", ["Rational Persuasion", "Consultation", "Collaboration", "Inspirational Appeals", "Apprising"]],
+    ["SOFT · 3 TACTICS", "Relationship levers", ["Ingratiation", "Personal Appeals", "Exchange"]],
+    ["HARD · 3 TACTICS", "Pressure levers", ["Pressure", "Legitimating", "Coalition"]],
+  ];
+  const outcomes = [
+    ["Commitment", "People agree and put in real effort. Most often the result of Core tactics.", C.green],
+    ["Compliance", "People do what is asked, but only the minimum, and often reluctantly.", C.ink],
+    ["Resistance", "People push back, delay or quietly avoid. A common cost of overused Hard tactics.", C.grey],
+  ];
+  const gets = [
+    ["A profile across all 11 levers", ", grouped into Core, Soft and Hard"],
+    ["Every signature strength", ", with a coaching review and a useful stretch"],
+    ["Each development focus area", ", with a small experiment to try"],
+    ["A consistency score", " showing how reliable the read is"],
+    ["A PDF download", " to keep and bring to your debrief"],
+  ];
+  return (
+    <div style={{ maxWidth: 720, margin: "0 auto", padding: "36px 28px 64px" }}>
+      {/* hero */}
+      <img src={GIG_LOGO} alt="Growth Impact Group" style={{ height: 40, width: "auto", display: "block" }} />
+      <div style={{ marginTop: 48 }}>
+        <Kicker>{"LEADERSHIP DIAGNOSTIC" + (SESSION ? " · " + SESSION.toUpperCase() : "")}</Kicker>
+        <h1 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: "clamp(44px, 12vw, 76px)", lineHeight: 0.95, color: C.ink, margin: "18px 0 0", letterSpacing: "-0.01em" }}>
+          The Influence<br /><span style={{ color: C.green }}>Self-Audit</span>
+        </h1>
+        <p style={{ fontFamily: BODY, fontStyle: "italic", fontSize: 19, color: C.muted, lineHeight: 1.45, margin: "18px 0 0", maxWidth: 560 }}>
+          Know which levers you actually pull when you need others’ support, and which one to build next.
+        </p>
+      </div>
+      <Rule style={{ margin: "30px 0 14px" }} />
+      <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.grey, margin: 0 }}>11 influence tactics · 22 forced choices · Under 2 minutes · Instant personal report</p>
+
+      {/* why it matters */}
+      <Section kicker="WHY IT MATTERS" title="Most influence happens without authority"
+        lead="Every day, you need support from colleagues, clients and leaders you don’t manage. How you go about it decides whether people truly commit.">
+        <div style={cols3}>
+          {[["users", "Across teams", "Matrix structures and shared projects make results depend on people outside your reporting line."],
+            ["globe", "With clients", "Client-facing work means moving decisions that sit firmly outside your control."],
+            ["trending-up", "Upwards", "Good ideas only land when senior leaders are persuaded to back them."]].map(function (c) {
+            return (
+              <div key={c[1]} style={{ borderTop: "1px solid " + C.hairline, paddingTop: 18 }}>
+                <LineIcon markup={UI_ICONS[c[0]]} size={28} />
+                <div style={colHead}>{c[1]}</div>
+                <p style={colText}>{c[2]}</p>
+              </div>
+            );
+          })}
+        </div>
+      </Section>
+
+      {/* framework */}
+      <Section kicker="THE FRAMEWORK" title="Built on Yukl’s eleven influence tactics"
+        lead="Gary Yukl’s research on proactive influence tactics is one of the most widely cited models of how people win support at work. The audit groups his eleven tactics into three families.">
+        <div style={cols3}>
+          {families.map(function (f) {
+            return (
+              <div key={f[0]} style={{ borderTop: "2px solid " + C.ink, paddingTop: 16 }}>
+                <div style={smallLabel}>{f[0]}</div>
+                <div style={Object.assign({}, colHead, { marginTop: 8 })}>{f[1]}</div>
+                <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.7 }}>
+                  {f[2].map(function (t) { return <li key={t}>{t}</li>; })}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      </Section>
+
+      {/* outcomes */}
+      <Section kicker="WHY THE LEVER MATTERS" title="The lever you pull shapes the response you get">
+        <div style={cols3}>
+          {outcomes.map(function (o, i) {
+            return (
+              <div key={o[0]}>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <span style={{ width: 16, height: 16, borderRadius: "50%", background: o[2], flexShrink: 0 }} />
+                  <span style={{ flex: 1, height: 2, background: i < 2 ? C.hairline : "transparent" }} />
+                </div>
+                <div style={colHead}>{o[0]}</div>
+                <p style={colText}>{o[1]}</p>
+              </div>
+            );
+          })}
+        </div>
+        <p style={{ fontFamily: BODY, fontSize: 18, color: C.ink, lineHeight: 1.5, margin: "26px 0 0" }}>
+          Strengthening Core tactics is the most direct route from compliance to <span style={{ color: C.green, fontWeight: 700 }}>commitment</span>.
+        </p>
+      </Section>
+
+      {/* how it works */}
+      <Section kicker="HOW IT WORKS" title="Forced choice, not self-flattery"
+        lead="Rating scales let everyone score themselves highly. This audit shows two statements at a time and asks which is more true of you. Every answer is a trade-off, so your result reveals the levers you genuinely favour.">
+        <div style={{ display: "flex", alignItems: "stretch", gap: 10, marginTop: 22, flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 220px", display: "flex", alignItems: "center", gap: 12, border: "1px solid " + C.hairline, padding: "14px", fontFamily: BODY, fontSize: 14.5, color: C.ink }}>
+            <LineIcon markup={ICONS.rational[1]} size={24} />
+            <span>I explain the reasons behind what I ask for.</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.16em", color: C.green }}>OR</div>
+          <div style={{ flex: "1 1 220px", display: "flex", alignItems: "center", gap: 12, border: "1px solid " + C.hairline, padding: "14px", fontFamily: BODY, fontSize: 14.5, color: C.ink }}>
+            <LineIcon markup={ICONS.coalition[1]} size={24} />
+            <span>I line up allies before an important ask.</span>
+          </div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", border: "1px solid " + C.hairline, marginTop: 22 }}>
+          {[["22", "quick choices"], ["<2", "minutes, on any phone"], ["11", "levers profiled"]].map(function (st, i) {
+            return (
+              <div key={st[1]} style={{ padding: "16px 8px", textAlign: "center", borderLeft: i === 0 ? "none" : "1px solid " + C.hairline }}>
+                <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 32, color: C.ink }}>{st[0]}</div>
+                <div style={{ fontFamily: BODY, fontSize: 12, color: C.muted, marginTop: 2 }}>{st[1]}</div>
+              </div>
+            );
+          })}
+        </div>
+      </Section>
+
+      {/* what you get */}
+      <Section kicker="WHAT YOU GET" title="An instant, personal influence profile">
+        <div style={{ marginTop: 18 }}>
+          {gets.map(function (g) {
+            return (
+              <div key={g[0]} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 0", borderBottom: "1px solid " + C.hairline }}>
+                <span style={{ flexShrink: 0, marginTop: 2 }}><LineIcon markup={UI_ICONS.check} size={20} color={C.green} /></span>
+                <span style={{ fontFamily: BODY, fontSize: 15.5, color: C.ink, lineHeight: 1.5 }}><b>{g[0]}</b>{g[1]}</span>
+              </div>
+            );
+          })}
+        </div>
+      </Section>
+
+      {/* is / isn't */}
+      <Section kicker="BEFORE YOU START" title="What the audit is, and what it isn’t">
+        <div style={cols3}>
+          <div style={{ borderTop: "2px solid " + C.green, paddingTop: 14 }}>
+            <div style={smallLabel}>IT IS</div>
+            <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.65 }}>
+              <li>A development tool showing the levers you prefer</li>
+              <li>A profile that compares your own levers with each other</li>
+              <li>Grounded in Yukl’s published research on influence tactics</li>
+              <li>Private: you see only your own result</li>
+            </ul>
+          </div>
+          <div style={{ borderTop: "2px solid " + C.hairline, paddingTop: 14 }}>
+            <div style={Object.assign({}, smallLabel, { color: C.grey })}>IT ISN’T</div>
+            <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.65 }}>
+              <li>A test of your ability or performance</li>
+              <li>A ranking of you against other people</li>
+              <li>A clinically validated psychometric test</li>
+              <li>Visible to other participants</li>
+            </ul>
+          </div>
+        </div>
+      </Section>
+
+      {/* call to action */}
+      <div style={{ marginTop: 48, background: C.tint, border: "1px solid " + C.green, borderRadius: 10, padding: "26px 24px" }}>
+        <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, lineHeight: 1.1 }}>Ready? It takes under two minutes.</div>
+        <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>Go with your gut. There are no right answers.</p>
+        <button onClick={props.onBegin} style={Object.assign({}, btnPrimary, { marginTop: 20 })} onMouseDown={function (e) { e.preventDefault(); }}>BEGIN THE TEST →</button>
+      </div>
+      <p style={{ fontFamily: BODY, fontSize: 11.5, color: C.grey, textAlign: "center", margin: "28px 0 0" }}>© 2026 Growth Impact Group Malaysia Sdn. Bhd.</p>
+    </div>
+  );
+}
+
 /* ============================================================ INTRO */
 function Intro(props) {
+  const [emailErr, setEmailErr] = useState(false);
+  function begin() {
+    const e = (props.email || "").trim();
+    if (e && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { setEmailErr(true); return; }
+    props.onBegin();
+  }
   return (
-    <div style={{ maxWidth: 620, margin: "0 auto", padding: "56px 28px 72px" }}>
+    <div style={{ maxWidth: 620, margin: "0 auto", padding: "28px 28px 72px" }}>
+      <button onClick={props.onBack} onMouseDown={function (e) { e.preventDefault(); }}
+        style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.12em", background: "none", border: "none", cursor: "pointer", color: C.muted, padding: "6px 0", marginBottom: 22 }}>← ABOUT THE AUDIT</button>
       <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.32em", color: C.grey }}>GROWTH IMPACT GROUP</div>
       <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.32em", color: C.grey, marginTop: 4 }}>SELF-ASSESSMENT{SESSION ? " · " + SESSION.toUpperCase() : ""}</div>
       <h1 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 52, lineHeight: 0.98, color: C.ink, margin: "26px 0 0", letterSpacing: "-0.01em" }}>
@@ -396,12 +590,16 @@ function Intro(props) {
         <label style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.18em", color: C.grey }}>YOUR NAME (OPTIONAL)</label>
         <input value={props.name} onChange={function (e) { props.setName(e.target.value); }} placeholder="e.g. Aisha R."
           style={{ display: "block", width: "100%", marginTop: 8, padding: "12px 14px", fontFamily: BODY, fontSize: 15, color: C.ink, border: "1px solid " + C.hairline, outline: "none" }} />
-        <p style={{ fontFamily: BODY, fontSize: 11.5, color: C.grey, lineHeight: 1.5, margin: "8px 0 0" }}>
-          Your result is saved privately for your facilitator at Growth Impact Group and used only for this programme. It is not shared with other participants.
+        <label style={{ display: "block", marginTop: 18, fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.18em", color: C.grey }}>YOUR EMAIL (OPTIONAL)</label>
+        <input type="email" value={props.email} onChange={function (e) { props.setEmail(e.target.value); setEmailErr(false); }} placeholder="e.g. aisha@company.com"
+          style={{ display: "block", width: "100%", marginTop: 8, padding: "12px 14px", fontFamily: BODY, fontSize: 15, color: C.ink, border: "1px solid " + (emailErr ? "#B23B3B" : C.hairline), outline: "none" }} />
+        {emailErr && <p style={{ fontFamily: BODY, fontSize: 12.5, color: "#B23B3B", margin: "6px 0 0" }}>Please check your email address, or leave it blank.</p>}
+        <p style={{ fontFamily: BODY, fontSize: 11.5, color: C.grey, lineHeight: 1.5, margin: "10px 0 0" }}>
+          Your name, email and result are saved privately for your facilitator at Growth Impact Group and used only for this programme. They are not shared with other participants.
         </p>
       </div>
 
-      <button onClick={props.onBegin} style={btnPrimary} onMouseDown={function (e) { e.preventDefault(); }}>BEGIN THE AUDIT →</button>
+      <button onClick={begin} style={btnPrimary} onMouseDown={function (e) { e.preventDefault(); }}>BEGIN THE AUDIT →</button>
 
       <p style={{ fontFamily: BODY, fontSize: 11.5, color: C.grey, lineHeight: 1.5, marginTop: 26 }}>
         22 quick choices · under 2 minutes. Every tactic is compared four times in a balanced design, so
@@ -518,6 +716,7 @@ function Results(props) {
     scored.forEach(function (s) { scores[s.id] = s.score; });
     return {
       name: (name || "").trim().slice(0, 80),
+      email: (props.email || "").trim().slice(0, 120),
       consistencyPct: consistency.pct,
       consistencyLabel: titleCase(cRead.label),
       scores: scores,
@@ -851,16 +1050,19 @@ function App() {
       </div>
     );
   }
-  const [screen, setScreen] = useState("intro");
+  const [screen, setScreen] = useState("landing");
+  const [email, setEmail] = useState("");
+  useEffect(function () { window.scrollTo(0, 0); }, [screen]);
   const [answers, setAnswers] = useState({});
   const [page, setPage] = useState(0);
   const [name, setName] = useState("");
   const [session, setSession] = useState(buildSession);
   return (
     <div style={{ minHeight: "100vh", background: C.white, color: C.ink, fontFamily: BODY }}>
-      {screen === "intro" && <Intro name={name} setName={setName} onBegin={function () { setPage(0); setAnswers({}); setSession(buildSession()); setScreen("audit"); }} />}
+      {screen === "landing" && <Landing onBegin={function () { setScreen("intro"); }} />}
+      {screen === "intro" && <Intro name={name} setName={setName} email={email} setEmail={setEmail} onBack={function () { setScreen("landing"); }} onBegin={function () { setPage(0); setAnswers({}); setSession(buildSession()); setScreen("audit"); }} />}
       {screen === "audit" && <Audit session={session} answers={answers} setAnswers={setAnswers} page={page} setPage={setPage} onFinish={function () { setScreen("results"); }} />}
-      {screen === "results" && <Results answers={answers} name={name} onRestart={function () { setAnswers({}); setPage(0); setName(""); setSession(buildSession()); setScreen("intro"); }} />}
+      {screen === "results" && <Results answers={answers} name={name} email={email} onRestart={function () { setAnswers({}); setPage(0); setName(""); setEmail(""); setSession(buildSession()); setScreen("intro"); }} />}
     </div>
   );
 }

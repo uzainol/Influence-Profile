@@ -228,7 +228,7 @@ function render() {
   });
 
   html += '<div class="kicker">INDIVIDUAL RESULTS</div><div class="tablewrap"><table><thead><tr>'
-    + '<th>REPORT</th><th>DATE</th><th>SESSION</th><th>NAME</th><th>CONSISTENCY</th><th>OUT OF</th>'
+    + '<th>REPORT</th><th>DATE</th><th>SESSION</th><th>NAME</th><th>EMAIL</th><th>CONSISTENCY</th><th>OUT OF</th>'
     + TACTICS.map((t) => '<th title="' + t[1] + '">' + t[1].split(" ")[0] + '</th>').join("")
     + '<th>CORE</th><th>SOFT</th><th>HARD</th><th>DEVELOPMENT FOCUS</th></tr></thead><tbody>';
   rows.forEach((r) => {
@@ -236,7 +236,7 @@ function render() {
     const repCell = maxOf(r) === 4
       ? '<td><button class="rep" data-id="' + esc(r.id) + '">⤓ PDF</button></td>'
       : '<td class="num" title="Earlier 33-question version: report not available">—</td>';
-    html += '<tr>' + repCell + '<td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.session || "—") + '</td><td>' + esc(r.name || "—") + '</td>'
+    html += '<tr>' + repCell + '<td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.session || "—") + '</td><td>' + esc(r.name || "—") + '</td><td>' + esc(r.email || "—") + '</td>'
       + '<td class="num">' + esc(r.consistencyPct) + '%</td>'
       + '<td class="num">' + maxOf(r) + '</td>'
       + TACTICS.map((t) => '<td class="num">' + esc(r.scores ? r.scores[t[0]] : "") + '</td>').join("")
@@ -264,13 +264,13 @@ document.getElementById("content").addEventListener("click", (e) => {
 function downloadCSV() {
   if (!rows.length) return;
   const q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
-  const header = ["Date", "Session", "Name", "Consistency %", "Consistency", "Scores out of"]
+  const header = ["Date", "Session", "Name", "Email", "Consistency %", "Consistency", "Scores out of"]
     .concat(TACTICS.map((t) => t[1]))
     .concat(["CORE avg", "SOFT avg", "HARD avg", "Development focus", "Most-used levers", "Less-used levers", "Record ID"]);
   const lines = [header.map(q).join(",")];
   rows.forEach((r) => {
     const g = r.groupAvg || {};
-    lines.push([fmtDate(r.date), r.session || "", r.name, r.consistencyPct, r.consistencyLabel, maxOf(r)]
+    lines.push([fmtDate(r.date), r.session || "", r.name, r.email || "", r.consistencyPct, r.consistencyLabel, maxOf(r)]
       .concat(TACTICS.map((t) => (r.scores ? r.scores[t[0]] : "")))
       .concat([g.CORE, g.SOFT, g.HARD, r.developmentTarget, (r.strengths || []).join(", "), (r.blindSpots || []).join(", "), r.id])
       .map(q).join(","));
