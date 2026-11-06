@@ -178,6 +178,15 @@ async function load(db) {
 
 /* 22-question version scores 0–4; the earlier 33-question version scored 0–6. */
 function maxOf(r) { return r.answers && Object.keys(r.answers).length > 22 ? 6 : 4; }
+/* Development focus under the current rule: the Core lever(s) tied for the lowest Core score.
+   Recomputed from the saved scores, so older results follow the same rule as new ones. */
+function focusOf(r) {
+  if (maxOf(r) !== 4 || !r.scores) return r.developmentTarget || "";
+  const core = TACTICS.filter((t) => t[2] === "CORE");
+  const min = Math.min(...core.map((t) => Number(r.scores[t[0]]) || 0));
+  return core.filter((t) => (Number(r.scores[t[0]]) || 0) === min)
+    .map((t) => t[1].replace(/\w\S*/g, (w) => w.charAt(0) + w.slice(1).toLowerCase())).join(", ");
+}
 function norm(r, id) { const v = r.scores ? Number(r.scores[id]) || 0 : 0; return v * 4 / maxOf(r); }
 
 function buildFilter() {
@@ -203,7 +212,7 @@ function render() {
   const avg = (fn) => rows.reduce((a, r) => a + fn(r), 0) / n;
   const avgCons = avg((r) => r.consistencyPct || 0);
   const targets = {};
-  rows.forEach((r) => { String(r.developmentTarget || "").split(", ").filter(Boolean).forEach((t) => { targets[t] = (targets[t] || 0) + 1; }); });
+  rows.forEach((r) => { String(focusOf(r)).split(", ").filter(Boolean).forEach((t) => { targets[t] = (targets[t] || 0) + 1; }); });
   const topTarget = Object.entries(targets).sort((a, b) => b[1] - a[1])[0];
 
   const sv = $("sessionFilter").value;
@@ -241,7 +250,7 @@ function render() {
       + '<td class="num">' + maxOf(r) + '</td>'
       + TACTICS.map((t) => '<td class="num">' + esc(r.scores ? r.scores[t[0]] : "") + '</td>').join("")
       + '<td class="num">' + esc(g.CORE) + '</td><td class="num">' + esc(g.SOFT) + '</td><td class="num">' + esc(g.HARD) + '</td>'
-      + '<td>' + esc(r.developmentTarget) + '</td></tr>';
+      + '<td>' + esc(focusOf(r)) + '</td></tr>';
   });
   html += '</tbody></table></div>';
   $("content").innerHTML = html;
@@ -272,7 +281,7 @@ function downloadCSV() {
     const g = r.groupAvg || {};
     lines.push([fmtDate(r.date), r.session || "", r.name, r.email || "", r.consistencyPct, r.consistencyLabel, maxOf(r)]
       .concat(TACTICS.map((t) => (r.scores ? r.scores[t[0]] : "")))
-      .concat([g.CORE, g.SOFT, g.HARD, r.developmentTarget, (r.strengths || []).join(", "), (r.blindSpots || []).join(", "), r.id])
+      .concat([g.CORE, g.SOFT, g.HARD, focusOf(r), (r.strengths || []).join(", "), (r.blindSpots || []).join(", "), r.id])
       .map(q).join(","));
   });
   const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });

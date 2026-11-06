@@ -429,6 +429,19 @@ function Landing(props) {
         </div>
       </Section>
 
+      {/* early start: the rest of the page is background reading */}
+      <div style={{ marginTop: 36, background: C.tint, border: "1px solid " + C.green, borderRadius: 10, padding: "26px 24px" }}>
+        <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, lineHeight: 1.1 }}>Ready to find out?</div>
+        <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>22 quick choices, under two minutes. Go with your gut; there are no right answers.</p>
+        <button onClick={props.onBegin} style={Object.assign({}, btnPrimary, btnGo, { marginTop: 20 })} onMouseDown={function (e) { e.preventDefault(); }}>BEGIN THE TEST →</button>
+        <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.grey, textAlign: "center", margin: "12px 0 0" }}>Or read on to learn more about the audit.</p>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 44 }}>
+        <span style={{ flex: 1, height: 1, background: C.hairline }} />
+        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.26em", color: C.grey }}>MORE ABOUT THE AUDIT</span>
+        <span style={{ flex: 1, height: 1, background: C.hairline }} />
+      </div>
+
       {/* framework */}
       <Section kicker="THE FRAMEWORK" title="Built on Yukl’s eleven influence tactics"
         lead="Gary Yukl’s research on proactive influence tactics is one of the most widely cited models of how people win support at work. The audit groups his eleven tactics into three families.">
@@ -536,7 +549,7 @@ function Landing(props) {
       <div style={{ marginTop: 48, background: C.tint, border: "1px solid " + C.green, borderRadius: 10, padding: "26px 24px" }}>
         <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, lineHeight: 1.1 }}>Ready? It takes under two minutes.</div>
         <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>Go with your gut. There are no right answers.</p>
-        <button onClick={props.onBegin} style={Object.assign({}, btnPrimary, { marginTop: 20 })} onMouseDown={function (e) { e.preventDefault(); }}>BEGIN THE TEST →</button>
+        <button onClick={props.onBegin} style={Object.assign({}, btnPrimary, btnGo, { marginTop: 20 })} onMouseDown={function (e) { e.preventDefault(); }}>BEGIN THE TEST →</button>
       </div>
       <p style={{ fontFamily: BODY, fontSize: 11.5, color: C.grey, textAlign: "center", margin: "28px 0 0" }}>© 2026 Growth Impact Group Malaysia Sdn. Bhd.</p>
     </div>
@@ -690,10 +703,8 @@ function Results(props) {
   const signatureBand = byDesc.filter(function (s) { return s.score >= 3; });
   const strengthFallback = signatureBand.length === 0;
   const strengthList = strengthFallback ? topStrengths : signatureBand;
-  // Every Core lever in the Underused band (0–1); if none, fall back to the lowest Core lever.
-  const underCore = core.filter(function (s) { return s.score <= 1; }).sort(function (a, b) { return a.score - b.score || a.num - b.num; });
-  const focusFallback = underCore.length === 0;
-  const focusList = focusFallback ? [lowestCore] : underCore;
+  // The Core lever(s) with the lowest Core score; every Core lever tied at that score is included.
+  const focusList = core.filter(function (s) { return s.score === lowestCore.score; }).sort(function (a, b) { return a.num - b.num; });
   const isFocus = function (id) { return focusList.some(function (f) { return f.id === id; }); };
   const gMean = function (g) { const gs = scored.filter(function (s) { return s.group === g; }); return gs.reduce(function (a, b) { return a + b.score; }, 0) / gs.length; };
   const means = { CORE: gMean("CORE"), SOFT: gMean("SOFT"), HARD: gMean("HARD") };
@@ -908,9 +919,7 @@ function Results(props) {
             {focusList.length > 1
               ? "These are Core influence approaches you selected less often in the scenarios. They are not failings or deficits. Think of them as useful experiments to expand your options when influencing different people and situations."
               : "This is one Core influence approach you selected less often in the scenarios. It is not a failing or a deficit. Think of it as a useful experiment to expand your options when influencing different people and situations."}
-            {focusFallback
-              ? " None of your Core levers fell in the Underused band (0–1), so your lowest-scoring Core lever is shown."
-              : (focusList.length > 1 ? " Every Core lever in your Underused band (0–1) is shown here, lowest first." : "")}
+            {focusList.length > 1 ? " These Core levers tied for your lowest score." : ""}
           </p>
           {focusList.map(function (f, i) {
             return (
@@ -1025,6 +1034,7 @@ function ListRow(props) {
   );
 }
 const btnPrimary = { marginTop: 34, width: "100%", padding: "16px 24px", fontFamily: HEAD, fontWeight: 700, fontSize: 15, letterSpacing: "0.14em", color: C.white, background: C.ink, border: "none", cursor: "pointer" };
+const btnGo = { background: C.green, color: C.white, fontSize: 16, padding: "18px 24px" };
 const btnGhost = { width: "100%", padding: "15px 24px", fontFamily: HEAD, fontWeight: 700, fontSize: 14, letterSpacing: "0.14em", color: C.ink, background: C.white, border: "1px solid " + C.ink, cursor: "pointer" };
 
 /* A facilitator link from admin.html carries a saved result in the URL fragment,
