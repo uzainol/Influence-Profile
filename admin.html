@@ -178,13 +178,13 @@ async function load(db) {
 
 /* 22-question version scores 0–4; the earlier 33-question version scored 0–6. */
 function maxOf(r) { return r.answers && Object.keys(r.answers).length > 22 ? 6 : 4; }
-/* Development focus under the current rule: the Core lever(s) tied for the lowest Core score.
+/* Development focus under the current rule: every lever tied for the lowest score.
    Recomputed from the saved scores, so older results follow the same rule as new ones. */
 function focusOf(r) {
   if (maxOf(r) !== 4 || !r.scores) return r.developmentTarget || "";
-  const core = TACTICS.filter((t) => t[2] === "CORE");
-  const min = Math.min(...core.map((t) => Number(r.scores[t[0]]) || 0));
-  return core.filter((t) => (Number(r.scores[t[0]]) || 0) === min)
+  const all = TACTICS;
+  const min = Math.min(...all.map((t) => Number(r.scores[t[0]]) || 0));
+  return all.filter((t) => (Number(r.scores[t[0]]) || 0) === min)
     .map((t) => t[1].replace(/\w\S*/g, (w) => w.charAt(0) + w.slice(1).toLowerCase())).join(", ");
 }
 function norm(r, id) { const v = r.scores ? Number(r.scores[id]) || 0 : 0; return v * 4 / maxOf(r); }

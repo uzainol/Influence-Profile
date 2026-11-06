@@ -250,6 +250,48 @@ const COACH_FOCUS = {
   ]
 };
 
+/* Focus write-ups for the Soft and Hard levers (the development focus can be any lever). */
+Object.assign(COACH_FOCUS, {
+  "ingratiation": [
+    "Your results suggest that expressing appreciation was not your first choice as often as other approaches. You may prefer to let the work speak for itself, which can come across as focused and fair. A little more explicit recognition can make people more open to you, especially when you are not their manager.",
+    "This week, thank one colleague for something specific they did, without asking for anything in return. Name exactly what they did and why it helped.",
+    "Who has helped me recently without hearing that it made a difference?"
+  ],
+  "personal": [
+    "You may prefer to keep requests strictly professional, or to manage on your own rather than ask a favour. That independence has value. Letting trusted colleagues know when something matters to you can also give them a chance to help, and relationships often grow stronger when help flows both ways.",
+    "Choose someone you have a good working relationship with. Explain why a current task matters to you and ask for one specific piece of help, making it clear that no is an acceptable answer.",
+    "Where am I carrying something alone that a trusted colleague would be glad to help with?"
+  ],
+  "exchange": [
+    "You may prefer not to frame requests as trades, perhaps because it can feel transactional. That instinct protects goodwill. Between peers, though, being open about what you can offer in return can make a request feel fairer and easier to accept.",
+    "For your next peer request, ask: “Is there something I can help you with in return?” Agree on it openly, then follow through.",
+    "Does my request ask more of them than I am offering back?"
+  ],
+  "pressure": [
+    "Your results suggest that firm deadlines and follow-up were not your first choice. That often reflects a respectful, low-pressure style, which people appreciate. When something genuinely matters, a clear deadline and a calm follow-up can help others prioritise without damaging trust.",
+    "For one important commitment, agree a specific date with the other person, explain why it matters and set one follow-up point together.",
+    "Is there a commitment that keeps slipping because I have not been clear about when it is needed?"
+  ],
+  "legitimating": [
+    "You may rely less on policies or formal roles when making requests, preferring persuasion or relationships. That can feel more personal. When people are unsure whether something is allowed or expected, a clear reference to the agreed standard can give them welcome certainty.",
+    "The next time someone hesitates over a request, explain which policy, agreement or role it rests on, and why that standard exists.",
+    "When would a clear reference to the rules make it easier for someone to say yes?"
+  ],
+  "coalition": [
+    "You may tend to make requests on your own rather than lining up support first. That can be efficient and direct. For larger or cross-team changes, involving a few respected colleagues early can build confidence and momentum that one voice alone may not achieve.",
+    "Before your next significant proposal, talk it through with one or two colleagues whose views others trust. Ask for their input and whether they would be willing to support it.",
+    "Whose early support would make this idea easier for others to accept?"
+  ]
+});
+const GROWTH_EXTRA = {
+  "ingratiation": "Showing genuine appreciation and recognising people’s strengths, so working relationships feel warm and respectful.",
+  "personal": "Drawing on trust and established relationships when you need support.",
+  "exchange": "Offering something in return, so both people gain from an arrangement.",
+  "pressure": "Using clear deadlines, reminders and follow-up so that important commitments are kept.",
+  "legitimating": "Pointing to agreed rules, roles or precedent to show that a request is proper.",
+  "coalition": "Building support from others so that a request carries broader backing."
+};
+
 const GROWTH = {
   rational: {
     what: "Building your case with clear reasoning, facts and evidence, so people can see for themselves why a request makes sense.",
@@ -284,6 +326,7 @@ for (let i = 0; i < 11; i++) for (const d of [1, 2]) { const j = (i + d) % 11; R
 const _seen = new Set();
 const PAIRS_IDX = RAW_PAIRS.filter(function (p) { const k = p[0] + "-" + p[1]; if (_seen.has(k)) return false; _seen.add(k); return true; });
 
+Object.keys(GROWTH_EXTRA).forEach(function (k) { GROWTH[k] = { what: GROWTH_EXTRA[k] }; });
 const MAX_SCORE = 4;      // head-to-heads per tactic
 const BALANCE = 2;        // MAX_SCORE / 2
 function bandFor(score) {
@@ -704,7 +747,10 @@ function Results(props) {
   const strengthFallback = signatureBand.length === 0;
   const strengthList = strengthFallback ? topStrengths : signatureBand;
   // The Core lever(s) with the lowest Core score; every Core lever tied at that score is included.
-  const focusList = core.filter(function (s) { return s.score === lowestCore.score; }).sort(function (a, b) { return a.num - b.num; });
+  // Development focus: every lever (any family) tied for the lowest score.
+  const minScore = Math.min.apply(null, scored.map(function (s) { return s.score; }));
+  const focusList = scored.filter(function (s) { return s.score === minScore; });
+  const focusAllCore = focusList.every(function (f) { return f.group === "CORE"; });
   const isFocus = function (id) { return focusList.some(function (f) { return f.id === id; }); };
   const gMean = function (g) { const gs = scored.filter(function (s) { return s.group === g; }); return gs.reduce(function (a, b) { return a + b.score; }, 0) / gs.length; };
   const means = { CORE: gMean("CORE"), SOFT: gMean("SOFT"), HARD: gMean("HARD") };
@@ -917,16 +963,16 @@ function Results(props) {
           <Kicker>{focusList.length > 1 ? "YOUR DEVELOPMENT FOCUS AREAS" : "YOUR DEVELOPMENT FOCUS"}</Kicker>
           <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.5, margin: "8px 0 0" }}>
             {focusList.length > 1
-              ? "These are Core influence approaches you selected less often in the scenarios. They are not failings or deficits. Think of them as useful experiments to expand your options when influencing different people and situations."
-              : "This is one Core influence approach you selected less often in the scenarios. It is not a failing or a deficit. Think of it as a useful experiment to expand your options when influencing different people and situations."}
-            {focusList.length > 1 ? " These Core levers tied for your lowest score." : ""}
+              ? "These are influence approaches you selected less often in the scenarios. They are not failings or deficits. Think of them as useful experiments to expand your options when influencing different people and situations."
+              : "This is an influence approach you selected less often in the scenarios. It is not a failing or a deficit. Think of it as a useful experiment to expand your options when influencing different people and situations."}
+            {focusList.length > 1 ? " These levers tied for your lowest score." : ""}
           </p>
           {focusList.map(function (f, i) {
             return (
               <div key={f.id} style={{ marginTop: 18, paddingTop: i === 0 ? 0 : 18, borderTop: i === 0 ? "none" : "1px solid " + C.frame }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
                   <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 24, color: C.ink }}>{f.name}</div>
-                  <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.1em", color: C.muted, flexShrink: 0 }}>{f.score}/{MAX_SCORE}</div>
+                  <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.1em", color: C.muted, flexShrink: 0 }}>{f.group} · {f.score}/{MAX_SCORE}</div>
                 </div>
                 <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>{GROWTH[f.id].what}</p>
                 <CoachLine label="Your coaching review" text={COACH_FOCUS[f.id][0]} />
@@ -936,9 +982,10 @@ function Results(props) {
             );
           })}
           <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.muted, lineHeight: 1.5, margin: "16px 0 0" }}>
-            {focusList.length > 1
-              ? "Core tactics build lasting commitment, not just compliance. Pick one of these as a useful place to experiment next."
-              : "Core tactics build lasting commitment, not just compliance. This is one useful place to experiment next."}
+            {(focusAllCore
+              ? "Core tactics build lasting commitment, not just compliance. "
+              : "Soft and Hard levers work best alongside the Core tactics, used thoughtfully and in proportion. ")
+              + (focusList.length > 1 ? "Pick one of these as a useful place to experiment next." : "This is one useful place to experiment next.")}
           </p>
         </div>
 
