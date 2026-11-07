@@ -66,49 +66,49 @@ const BODY = "Arial,Helvetica,sans-serif";
 
 const TACTICS = [
   { id: "rational", group: "CORE", num: 1, name: "RATIONAL PERSUASION",
-    items: ["I back up my ideas with facts and evidence.",
-            "I explain the reasons behind what I ask for.",
-            "I prepare examples or analysis before a big decision."] },
+    items: ["I use facts to back up my ideas.",
+            "I explain why I’m asking.",
+            "I prepare examples before I make my case."] },
   { id: "consultation", group: "CORE", num: 2, name: "CONSULTATION",
-    items: ["I ask people to help shape a plan before it’s set.",
-            "I ask for input on how things should be done.",
-            "I adjust my approach based on people’s suggestions."] },
+    items: ["I ask for ideas before I finalise a plan.",
+            "I ask people how they think it should be done.",
+            "I change my plan based on people’s suggestions."] },
   { id: "collaboration", group: "CORE", num: 3, name: "COLLABORATION",
-    items: ["I offer help or resources to make it easier to say yes.",
-            "I clear obstacles so people can act on what I’ve asked.",
-            "I work alongside people rather than just assigning tasks."] },
+    items: ["I offer to help so it’s easier to say yes.",
+            "I remove what’s stopping people from doing it.",
+            "I work on it with them, not just hand it over."] },
   { id: "inspirational", group: "CORE", num: 4, name: "INSPIRATIONAL APPEALS",
-    items: ["I connect what I ask for to a bigger purpose.",
-            "I speak with conviction to build belief in an idea.",
+    items: ["I link my request to a bigger purpose.",
+            "I speak with passion to get people excited.",
             "I help people picture what success looks like."] },
   { id: "apprising", group: "CORE", num: 5, name: "APPRISING",
-    items: ["I explain how it benefits the other person.",
-            "I show how a task supports someone’s own goals.",
-            "I tailor my reasons to what each person cares about."] },
+    items: ["I explain how it helps the other person.",
+            "I show how it helps them reach their own goals.",
+            "I change my reasons to fit what each person cares about."] },
   { id: "ingratiation", group: "SOFT", num: 6, name: "INGRATIATION",
-    items: ["I show appreciation before I ask for something.",
-            "I acknowledge people’s strengths openly.",
-            "I put people at ease before raising what I need."] },
+    items: ["I thank people before I ask for something.",
+            "I praise people’s strengths.",
+            "I make people comfortable before I ask."] },
   { id: "personal", group: "SOFT", num: 7, name: "PERSONAL APPEALS",
-    items: ["I ask for help based on goodwill and trust.",
-            "I lean on established relationships when I need help.",
-            "I let people know when something matters to me personally."] },
+    items: ["I ask for help because we trust each other.",
+            "I ask people I already know well.",
+            "I tell people when something matters to me."] },
   { id: "exchange", group: "SOFT", num: 8, name: "EXCHANGE",
-    items: ["I offer something in return for help.",
-            "I remind people of favours they owe me.",
-            "I propose trades that work for both sides."] },
+    items: ["I offer something back in return.",
+            "I remind people of favours I’ve done for them.",
+            "I suggest a deal that works for both of us."] },
   { id: "pressure", group: "HARD", num: 9, name: "PRESSURE",
-    items: ["I use persistent reminders to get action.",
-            "I set firm deadlines and follow up insistently.",
-            "I make the consequences of inaction clear."] },
+    items: ["I keep reminding people until it’s done.",
+            "I set firm deadlines and chase them.",
+            "I make clear what happens if it’s not done."] },
   { id: "legitimating", group: "HARD", num: 10, name: "LEGITIMATING",
-    items: ["I point to rules or my role to justify a request.",
-            "I use precedent to show a request is proper.",
-            "I refer to official backing when I need people to comply."] },
+    items: ["I point to the rules or my role.",
+            "I point to how it’s been done before.",
+            "I mention that management has approved it."] },
   { id: "coalition", group: "HARD", num: 11, name: "COALITION",
-    items: ["I get others to help persuade someone.",
-            "I line up allies before an important ask.",
-            "I mention who else is on board to strengthen my case."] },
+    items: ["I get others to help me convince someone.",
+            "I get support from others before I ask.",
+            "I mention who else already agrees."] },
 ];
 const TByIndex = TACTICS;
 
@@ -454,6 +454,14 @@ function Landing(props) {
       <Rule style={{ margin: "30px 0 14px" }} />
       <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.grey, margin: 0 }}>11 influence tactics · 22 forced choices · Under 2 minutes · Instant personal report</p>
 
+      {/* opening copy */}
+      <div style={{ marginTop: 34 }}>
+        <p style={{ fontFamily: BODY, fontSize: 17, color: C.ink, lineHeight: 1.65, margin: 0 }}>We all have our own ways of influencing others. Some approaches work well in certain situations, but may be less effective in others.</p>
+        <p style={{ fontFamily: BODY, fontSize: 17, color: C.ink, lineHeight: 1.65, margin: "14px 0 0" }}>The key is knowing what works, when to use it, and when to try something different.</p>
+        <p style={{ fontFamily: BODY, fontSize: 17, color: C.ink, lineHeight: 1.65, margin: "14px 0 0" }}>Take this 2-minute Influence Self-Audit to discover your influencing strengths, identify habits that may be holding you back, and find practical ways to influence others more effectively.</p>
+        <p style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 22, lineHeight: 1.2, color: C.ink, margin: "22px 0 0", paddingLeft: 14, borderLeft: "3px solid " + C.green }}>Better influence starts with understanding how you influence <span style={{ color: C.green }}>today</span>.</p>
+      </div>
+
       {/* why it matters */}
       <Section kicker="WHY IT MATTERS" title="Most influence happens without authority"
         lead="Every day, you need support from colleagues, clients and leaders you don’t manage. How you go about it decides whether people truly commit.">
@@ -530,12 +538,12 @@ function Landing(props) {
         <div style={{ display: "flex", alignItems: "stretch", gap: 10, marginTop: 22, flexWrap: "wrap" }}>
           <div style={{ flex: "1 1 220px", display: "flex", alignItems: "center", gap: 12, border: "1px solid " + C.hairline, padding: "14px", fontFamily: BODY, fontSize: 14.5, color: C.ink }}>
             <LineIcon markup={ICONS.rational[1]} size={24} />
-            <span>I explain the reasons behind what I ask for.</span>
+            <span>I explain why I’m asking.</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.16em", color: C.green }}>OR</div>
           <div style={{ flex: "1 1 220px", display: "flex", alignItems: "center", gap: 12, border: "1px solid " + C.hairline, padding: "14px", fontFamily: BODY, fontSize: 14.5, color: C.ink }}>
             <LineIcon markup={ICONS.coalition[1]} size={24} />
-            <span>I line up allies before an important ask.</span>
+            <span>I get support from others before I ask.</span>
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", border: "1px solid " + C.hairline, marginTop: 22 }}>
@@ -633,12 +641,12 @@ function Intro(props) {
       <div style={{ display: "flex", alignItems: "stretch", gap: 10, marginTop: 22 }}>
         <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, border: "1px solid " + C.hairline, padding: "12px", fontFamily: BODY, fontSize: 13, color: C.ink }}>
           <LineIcon markup={ICONS.rational[1]} size={22} />
-          <span>I explain the <b>reasons</b> behind what I ask for.</span>
+          <span>I explain <b>why</b> I’m asking.</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.16em", color: C.green }}>OR</div>
         <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, border: "1px solid " + C.hairline, padding: "12px", fontFamily: BODY, fontSize: 13, color: C.ink }}>
           <LineIcon markup={ICONS.coalition[1]} size={22} />
-          <span>I line up <b>allies</b> before an important ask.</span>
+          <span>I get <b>support</b> from others before I ask.</span>
         </div>
       </div>
 
@@ -703,8 +711,9 @@ function Audit(props) {
       <div style={{ height: 3, background: C.hairline, marginTop: 8, position: "relative" }}>
         <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: pct + "%", background: C.green, transition: "width .3s ease" }} />
       </div>
-      <h2 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 30, lineHeight: 1.02, color: C.ink, margin: "40px 0 4px", textAlign: "center" }}>
-        Which is more<br />true of you?
+      <p style={{ fontFamily: BODY, fontStyle: "italic", fontSize: 15, color: C.muted, textAlign: "center", margin: "36px 0 0" }}>When you need someone’s help or agreement…</p>
+      <h2 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 30, lineHeight: 1.02, color: C.ink, margin: "8px 0 4px", textAlign: "center" }}>
+        Which sounds<br />more like you?
       </h2>
       <p style={{ fontFamily: BODY, fontSize: 13, color: C.grey, textAlign: "center", margin: "0 0 26px" }}>Go with your gut.</p>
       <Card side={pair.left} />
@@ -894,40 +903,15 @@ function Results(props) {
           </div>
         </div>
 
-        <div style={{ marginTop: 36 }}>
-          {["CORE", "SOFT", "HARD"].map(function (g) {
-            return (
-              <div key={g} style={{ marginBottom: 26 }}>
-                <Kicker style={{ marginBottom: 12 }}>{GROUP_META[g].label}</Kicker>
-                {scored.filter(function (s) { return s.group === g; }).map(function (s) { return <ProfileBar key={s.id} tactic={s} highlight={isFocus(s.id)} />; })}
-              </div>
-            );
-          })}
+        <div style={{ marginTop: 34 }}>
+          <Kicker>YOUR INFLUENCE WEB</Kicker>
+          <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.5, margin: "10px 0 0" }}>
+            Each spoke is one lever, scored 0–4. The green dashed ring marks 2, the balance point: points outside it are levers you favour, points inside it are ones you use less. The shape shows your mix of habits, not how skilled you are.
+          </p>
+          <Radar scored={scored} isFocus={isFocus} />
+          <RadarLegend />
+          <ScoreList scored={scored} isFocus={isFocus} />
         </div>
-
-        <Rule style={{ margin: "18px 0 30px" }} />
-        <Kicker>PLOT YOUR PROFILE</Kicker>
-        <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.5, margin: "10px 0 16px" }}>Each row is shaded up to your score. The green line marks 2 — the balance point.</p>
-        {["CORE", "SOFT", "HARD"].map(function (g) {
-          return (
-            <div key={g} style={{ marginBottom: 14 }}>
-              <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 10.5, letterSpacing: "0.22em", color: C.green, margin: "6px 0 8px" }}>{g}</div>
-              {scored.filter(function (s) { return s.group === g; }).map(function (s) {
-                return (
-                  <div key={s.id} style={{ marginBottom: 9 }}>
-                    <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, color: C.ink, letterSpacing: "0.02em", marginBottom: 4, display: "flex", justifyContent: "space-between" }}>
-                      <span>{s.name}{isFocus(s.id) && <span style={{ color: C.green, marginLeft: 6, fontSize: 10, letterSpacing: "0.12em" }}>◄ FOCUS</span>}</span>
-                      <span style={{ color: C.grey }}>{s.score}</span>
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 3 }}>
-                      {cols.map(function (n) { const filled = n <= s.score; return <div key={n} style={{ height: 16, background: filled ? (isFocus(s.id) ? C.green : C.ink) : C.tint, border: "1px solid " + (filled ? "transparent" : C.hairline), borderRight: n === BALANCE ? "2px solid " + C.green : undefined }} />; })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
 
         <Rule style={{ margin: "26px 0 30px" }} />
 
@@ -1041,6 +1025,99 @@ function Results(props) {
         <button onClick={copyResults} style={Object.assign({}, btnGhost, { marginTop: 12 })} onMouseDown={function (e) { e.preventDefault(); }}>{copied ? "✓ COPIED TO CLIPBOARD" : "⧉ COPY MY RESULTS"}</button>
         {!props.facilitator && <button onClick={props.onRestart} style={Object.assign({}, btnGhost, { marginTop: 12 })} onMouseDown={function (e) { e.preventDefault(); }}>↻ RETAKE THE AUDIT</button>}
       </div>
+    </div>
+  );
+}
+
+/* ---------- spiderweb ---------- */
+const FAMILY_FILL = { CORE: "#E2F1E5", SOFT: "#F4EDDD", HARD: "#E6EAF0" };
+const FAMILY_NAME = { CORE: "Core", SOFT: "Soft", HARD: "Hard" };
+const SHORT = { rational: "Rational", consultation: "Consultation", collaboration: "Collaboration", inspirational: "Inspirational",
+  apprising: "Apprising", ingratiation: "Ingratiation", personal: "Personal", exchange: "Exchange",
+  pressure: "Pressure", legitimating: "Legitimating", coalition: "Coalition" };
+
+function Radar(props) {
+  const L = props.scored, n = L.length;
+  const W = 640, H = 400, cx = 320, cy = 200, R = 150, R0 = 18;
+  const ang = function (i) { return -Math.PI / 2 + (2 * Math.PI * i) / n; };
+  const rad = function (v) { return R0 + ((R - R0) * v) / MAX_SCORE; };
+  const pt = function (i, v) { return [cx + Math.cos(ang(i)) * rad(v), cy + Math.sin(ang(i)) * rad(v)]; };
+  const ring = function (v) { return L.map(function (_, i) { return pt(i, v).join(","); }).join(" "); };
+  const mid = function (i) { const a = pt(((i % n) + n) % n, MAX_SCORE), b = pt((((i + 1) % n) + n) % n, MAX_SCORE); return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; };
+  const wedges = ["CORE", "SOFT", "HARD"].map(function (g) {
+    const idx = L.map(function (s, i) { return s.group === g ? i : -1; }).filter(function (i) { return i >= 0; });
+    const first = idx[0], last = idx[idx.length - 1];
+    const pts = [[cx, cy], mid(first - 1)].concat(idx.map(function (i) { return pt(i, MAX_SCORE); }), [mid(last)]);
+    return <polygon key={g} points={pts.map(function (p) { return p.join(","); }).join(" ")} fill={FAMILY_FILL[g]} />;
+  });
+  return (
+    <svg viewBox={"0 0 " + W + " " + H} width="100%" style={{ display: "block", margin: "18px auto 0", maxWidth: 640 }} role="img"
+      aria-label={"Influence web: " + L.map(function (s) { return s.name + " " + s.score; }).join(", ")}>
+      {wedges}
+      {[0, 1, 3, 4].map(function (v) { return <polygon key={v} points={ring(v)} fill="none" stroke="#FFFFFF" strokeWidth="1.5" />; })}
+      {L.map(function (_, i) { const a = pt(i, 0), b = pt(i, MAX_SCORE); return <line key={i} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke="#FFFFFF" strokeWidth="1.5" />; })}
+      <polygon points={ring(BALANCE)} fill="none" stroke={C.green} strokeWidth="1.8" strokeDasharray="5 4" />
+      {[1, 2, 3, 4].map(function (v) { return <text key={v} x={cx + 6} y={cy - rad(v) + 13} fontSize="10" fill={C.grey} fontFamily={BODY}>{v}</text>; })}
+      <polygon points={L.map(function (s, i) { return pt(i, s.score).join(","); }).join(" ")} fill="#1A1A1A" fillOpacity="0.07" stroke={C.ink} strokeWidth="2.2" strokeLinejoin="round" />
+      {L.map(function (s, i) { const p = pt(i, s.score), f = props.isFocus(s.id);
+        return <circle key={s.id} cx={p[0]} cy={p[1]} r={f ? 6.5 : 4.5} fill={f ? C.green : C.ink} stroke="#FFFFFF" strokeWidth="2" />; })}
+      {L.map(function (s, i) {
+        const a = ang(i), c = Math.cos(a), sn = Math.sin(a), f = props.isFocus(s.id);
+        const x = cx + c * (R + 16), y = cy + sn * (R + 16);
+        const anchor = Math.abs(c) < 0.25 ? "middle" : (c > 0 ? "start" : "end");
+        const dy = sn < -0.9 ? -8 : (sn > 0.85 ? 14 : 4);
+        return (
+          <g key={s.id}>
+            <text x={x} y={y + dy} textAnchor={anchor} fontSize="15" fontWeight="700" fontFamily={HEAD} letterSpacing="0.3" fill={f ? C.green : C.ink}>{SHORT[s.id].toUpperCase()}</text>
+            <text x={x} y={y + dy + 16} textAnchor={anchor} fontSize="12.5" fontFamily={BODY} fill={f ? C.green : C.grey}>{s.score + "/" + MAX_SCORE + (f ? " · FOCUS" : "")}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function RadarLegend() {
+  const item = function (fill, label) {
+    return (
+      <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: 6, marginRight: 16 }}>
+        <span style={{ width: 12, height: 12, background: fill, border: "1px solid " + C.hairline, display: "inline-block" }} />{label}
+      </span>
+    );
+  };
+  return (
+    <div style={{ fontFamily: BODY, fontSize: 12, color: C.muted, textAlign: "center", marginTop: 6, lineHeight: 2 }}>
+      {item(FAMILY_FILL.CORE, "Core")}{item(FAMILY_FILL.SOFT, "Soft")}{item(FAMILY_FILL.HARD, "Hard")}
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <span style={{ width: 18, height: 0, borderTop: "2px dashed " + C.green, display: "inline-block" }} />Balance point (2)
+      </span>
+    </div>
+  );
+}
+
+function ScoreList(props) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 20, marginTop: 22 }}>
+      {["CORE", "SOFT", "HARD"].map(function (g) {
+        return (
+          <div key={g}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 6, borderBottom: "2px solid " + C.ink }}>
+              <span style={{ width: 12, height: 12, background: FAMILY_FILL[g], border: "1px solid " + C.hairline }} />
+              <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.2em", color: C.ink }}>{g}</span>
+            </div>
+            {props.scored.filter(function (s) { return s.group === g; }).map(function (s) {
+              const f = props.isFocus(s.id);
+              const bandColor = s.band.key === "SIGNATURE" ? C.green : (s.band.key === "SITUATIONAL" ? C.ink : C.grey);
+              return (
+                <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, padding: "7px 0", borderBottom: "1px solid " + C.hairline }}>
+                  <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, color: f ? C.green : C.ink }}>{s.name}</span>
+                  <span style={{ fontFamily: BODY, fontSize: 12, color: f ? C.green : bandColor, whiteSpace: "nowrap" }}><b>{s.score}</b> · {f ? "Focus" : s.band.label.charAt(0) + s.band.label.slice(1).toLowerCase()}</span>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
     </div>
   );
 }
