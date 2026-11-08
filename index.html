@@ -26,6 +26,20 @@
 <script type="text/babel" data-presets="react">
 const { useState, useRef, useEffect } = React;
 
+/* Language: ?lang=ms gives Bahasa Melayu; anything else is English. */
+const LANG = (function () {
+  try { const v = (new URLSearchParams(window.location.search).get("lang") || "").toLowerCase(); return (v === "ms" || v === "bm") ? "ms" : "en"; }
+  catch (e) { return "en"; }
+})();
+const tx = function (en, ms) { return LANG === "ms" ? ms : en; };
+document.documentElement.lang = LANG;
+if (LANG === "ms") document.title = "Audit Kendiri Pengaruh · Growth Impact Group";
+function setLang(l) {
+  const u = new URL(window.location.href);
+  if (l === "ms") u.searchParams.set("lang", "ms"); else u.searchParams.delete("lang");
+  window.location.href = u.toString();
+}
+
 /* Firebase config lives in firebase-config.js (paste it there, not here). */
 const FIREBASE_CONFIG = window.FIREBASE_CONFIG || { apiKey: "PASTE" };
 
@@ -327,12 +341,26 @@ const _seen = new Set();
 const PAIRS_IDX = RAW_PAIRS.filter(function (p) { const k = p[0] + "-" + p[1]; if (_seen.has(k)) return false; _seen.add(k); return true; });
 
 Object.keys(GROWTH_EXTRA).forEach(function (k) { GROWTH[k] = { what: GROWTH_EXTRA[k] }; });
+/* English lever names are kept for saved results, so the admin page stays in one language. */
+const EN_NAME = {}; TACTICS.forEach(function (t) { EN_NAME[t.id] = t.name; });
+/* Bahasa Melayu content (from the reviewed BM draft) */
+const MS_DATA = {"names":{"rational":"Pujukan Rasional","consultation":"Rundingan","collaboration":"Kerjasama","inspirational":"Membangkitkan Semangat","apprising":"Menjelaskan Manfaat","ingratiation":"Membina Hubungan Baik","personal":"Permintaan Peribadi","exchange":"Timbal Balas","pressure":"Desakan","legitimating":"Merujuk Autoriti","coalition":"Membina Sokongan"},"items":{"rational":["Saya menggunakan fakta untuk menyokong cadangan saya.","Saya menjelaskan sebab di sebalik permintaan saya.","Saya menyediakan contoh sebelum mengemukakan cadangan saya."],"consultation":["Saya meminta pandangan orang lain sebelum memuktamadkan rancangan.","Saya bertanya kepada orang lain tentang cara terbaik untuk melaksanakan sesuatu tugas.","Saya menambah baik rancangan berdasarkan cadangan orang lain."],"collaboration":["Saya menawarkan bantuan supaya orang lain lebih mudah bersetuju.","Saya membantu mengatasi halangan yang menyukarkan orang lain melaksanakan tugas.","Saya turut membantu melaksanakan tugas, bukan sekadar menyerahkannya kepada orang lain."],"inspirational":["Saya mengaitkan permintaan saya dengan matlamat yang lebih besar.","Saya bercakap dengan penuh semangat supaya orang lain turut teruja.","Saya membantu orang lain membayangkan hasil yang ingin dicapai."],"apprising":["Saya menerangkan manfaat yang akan diperoleh orang lain jika mereka memenuhi permintaan saya.","Saya menunjukkan bagaimana tugas tersebut dapat membantu mereka mencapai matlamat sendiri.","Saya menyesuaikan penjelasan saya mengikut perkara yang penting bagi setiap orang."],"ingratiation":["Saya mengucapkan terima kasih kepada orang lain sebelum meminta bantuan.","Saya mengiktiraf kekuatan dan sumbangan orang lain.","Saya memastikan orang lain berasa selesa sebelum membuat permintaan."],"personal":["Saya meminta bantuan kerana kami mempunyai hubungan yang saling mempercayai.","Saya meminta bantuan daripada orang yang rapat dengan saya.","Saya memberitahu orang lain apabila sesuatu perkara benar-benar penting bagi saya."],"exchange":["Saya menawarkan sesuatu sebagai balasan apabila meminta bantuan.","Saya mengingatkan orang lain tentang bantuan yang pernah saya berikan.","Saya mencadangkan persetujuan yang memberi manfaat kepada kedua-dua pihak."],"pressure":["Saya membuat peringatan berulang kali sehingga tugas diselesaikan.","Saya menetapkan tarikh akhir yang tegas dan membuat susulan.","Saya menjelaskan akibatnya jika sesuatu tugas tidak dilaksanakan."],"legitimating":["Saya merujuk kepada peraturan atau bidang kuasa saya.","Saya merujuk kepada amalan yang telah digunakan sebelum ini.","Saya menyatakan bahawa permintaan tersebut telah mendapat kelulusan pihak pengurusan."],"coalition":["Saya mendapatkan bantuan orang lain untuk meyakinkan seseorang.","Saya mendapatkan sokongan beberapa orang sebelum membuat permintaan.","Saya memaklumkan siapa lagi yang telah bersetuju dengan cadangan saya."]},"desc":{"rational":"Anda menggunakan alasan yang logik, fakta dan bukti untuk menunjukkan bahawa sesuatu permintaan itu munasabah dan boleh dilaksanakan.","consultation":"Anda mendapatkan pandangan orang lain dan melibatkan mereka dalam penyediaan rancangan sebelum meminta sokongan.","collaboration":"Anda menawarkan bantuan, sumber atau sokongan untuk memudahkan orang lain memenuhi permintaan anda.","inspirational":"Anda mengaitkan permintaan dengan nilai, aspirasi dan tujuan yang bermakna supaya orang lain bersemangat untuk bertindak.","apprising":"Anda menerangkan bagaimana sesuatu tugas dapat membantu orang lain mencapai matlamat, mengembangkan kemahiran atau memajukan kerjaya mereka.","ingratiation":"Anda menunjukkan penghargaan yang tulus dan mengiktiraf kekuatan orang lain untuk membina hubungan baik sebelum atau semasa membuat permintaan.","personal":"Anda meminta sokongan berdasarkan hubungan peribadi dan kepercayaan yang telah terjalin.","exchange":"Anda menawarkan balasan, seperti bantuan atau pertolongan pada masa hadapan, sebagai sebahagian daripada persetujuan bersama.","pressure":"Anda menggunakan tarikh akhir, peringatan dan tindakan susulan yang tegas untuk memastikan sesuatu tugas disiapkan.","legitimating":"Anda merujuk kepada peraturan, dasar, jawatan atau amalan terdahulu untuk menunjukkan bahawa permintaan anda mempunyai asas yang sah.","coalition":"Anda mendapatkan sokongan daripada orang lain atau menunjukkan bahawa ramai yang sudah bersetuju bagi mengukuhkan cadangan anda."},"strength":{"rational":["Anda cenderung menggunakan alasan yang boleh disemak dan dinilai oleh orang lain. Ini membantu mereka memahami sebab di sebalik sesuatu keputusan, khususnya apabila perkara tersebut rumit atau berisiko. Anda tidak perlu mempunyai jawapan bagi setiap persoalan untuk menggunakan pendekatan ini dengan baik.","Walaupun hujah anda kukuh, orang lain mungkin masih berasa pandangan mereka tidak didengari. Selain mengemukakan bukti, berikan ruang untuk mereka menyuarakan kebimbangan, keutamaan dan cabaran yang dihadapi.","Apabila membuat permintaan seterusnya, kemukakan satu bukti yang kukuh dan kaitkannya dengan matlamat orang tersebut. Kemudian tanya: “Apa lagi yang perlu anda tahu sebelum dapat bersetuju dengan cadangan ini?”","Bilakah bukti tambahan diperlukan, dan bilakah mendengar pandangan orang lain lebih membantu?"],"consultation":["Anda selesa memberi ruang kepada orang lain untuk menyumbang idea. Melibatkan mereka dapat meningkatkan rasa tanggungjawab terhadap keputusan bersama dan membantu anda melihat perkara yang mungkin terlepas pandang. Ini juga menunjukkan bahawa anda menghargai pengalaman mereka.","Rundingan akan lebih berkesan jika anda benar-benar terbuka kepada pandangan orang lain. Pada masa yang sama, jelaskan perkara yang sudah diputuskan, perkara yang masih boleh diubah dan bila keputusan perlu dibuat.","Bentangkan cadangan seterusnya sebagai draf. Nyatakan satu bahagian yang masih boleh diubah, minta pandangan dan tunjukkan bagaimana maklum balas itu diambil kira.","Siapakah yang patut saya libatkan lebih awal untuk mendapatkan hasil yang lebih baik?"],"collaboration":["Anda cenderung menawarkan bantuan atau sumber apabila meminta orang lain melakukan sesuatu. Kesediaan berkongsi tanggungjawab ini boleh membuatkan mereka berasa disokong dan tidak perlu menghadapi cabaran sendirian.","Bantuan paling bermakna ialah bantuan yang mampu anda tunaikan. Elakkan berjanji melebihi kemampuan atau mengambil alih tanggungjawab orang lain tanpa disedari.","Sebelum membuat permintaan seterusnya, tanya: “Apa yang mungkin menyukarkan tugas ini?” Tawarkan satu bentuk bantuan yang khusus dan realistik, kemudian persetujui pembahagian tanggungjawab.","Adakah bantuan saya membolehkan orang lain lebih berdikari, atau menjadikan mereka terlalu bergantung pada saya?"],"inspirational":["Anda pandai menghubungkan sesuatu tugas dengan tujuan yang lebih bermakna. Pendekatan ini boleh meningkatkan semangat dan komitmen, terutama apabila kerja tersebut mencabar atau memerlukan usaha berterusan.","Setiap orang mempunyai sumber motivasi yang berbeza. Perkara yang penting bagi anda belum tentu sama pentingnya bagi mereka. Seimbangkan mesej yang memberi inspirasi dengan langkah yang jelas dan dengar apa yang mendorong mereka.","Dalam perbincangan pasukan seterusnya, jelaskan siapa yang akan mendapat manfaat daripada hasil kerja tersebut. Kemudian ajak ahli pasukan berkongsi sebab matlamat itu penting bagi mereka.","Adakah saya mengetengahkan tujuan saya sendiri, tujuan mereka atau tujuan yang benar-benar dikongsi bersama?"],"apprising":["Anda peka terhadap cara sesuatu permintaan boleh membantu orang lain mencapai cita-cita mereka. Apabila mereka nampak manfaat yang benar-benar relevan, kerjasama boleh menjadi pilihan yang bermakna kepada mereka, bukan sekadar memenuhi permintaan anda.","Jangan menganggap anda sudah tahu apa yang penting bagi seseorang. Manfaat yang dijanjikan hanya meyakinkan jika ia benar, khusus dan selaras dengan keperluannya.","Tanya seorang rakan sekerja perkara yang ingin dipelajari atau dicapainya. Jika tugasan anda benar-benar dapat membantunya, jelaskan kaitan tersebut.","Adakah saya sudah bertanya apa yang penting baginya, atau sekadar membuat andaian?"],"ingratiation":["Pilihan anda menunjukkan bahawa penghargaan dan hubungan baik merupakan sebahagian daripada cara anda mempengaruhi orang lain. Apabila pujian diberikan secara khusus dan ikhlas, orang akan lebih mudah berasa dihargai dan dihormati. Ini dapat mengukuhkan kepercayaan dari semasa ke semasa.","Penghargaan akan lebih dipercayai jika tidak diberikan semata-mata untuk mendapatkan persetujuan. Amalkan penghargaan dalam urusan harian, termasuk ketika anda tidak memerlukan bantuan.","Minggu ini, ucapkan terima kasih kepada seseorang atas sumbangan khusus yang telah diberikan, tanpa meminta apa-apa sebagai balasan. Perhatikan kesannya terhadap hubungan anda.","Adakah penghargaan saya masih ikhlas jika saya tidak memerlukan bantuannya?"],"personal":["Anda selesa meminta sokongan melalui hubungan yang dibina atas dasar kepercayaan. Kesediaan meminta pertolongan dan menjaga hubungan yang saling membantu merupakan kekuatan dalam kehidupan profesional.","Hubungan rapat perlu dijaga dengan teliti. Berikan orang lain kebebasan untuk menolak tanpa rasa bersalah. Elakkan meminta mereka mengabaikan keperluan atau tanggungjawab sendiri hanya kerana hubungan yang rapat.","Apabila meminta bantuan daripada seseorang yang rapat dengan anda, jelaskan mengapa sokongannya bermakna. Nyatakan juga bahawa dia boleh menolak jika tidak dapat membantu.","Adakah orang ini berasa selesa untuk memberikan jawapan yang jujur kepada saya?"],"exchange":["Anda selesa membincangkan manfaat bersama secara terbuka. Persetujuan yang jelas dan adil sangat berguna apabila bekerjasama dengan rakan setara yang tidak mempunyai kuasa rasmi antara satu sama lain.","Persetujuan yang baik dibuat secara sukarela oleh kedua-dua pihak. Pastikan tawaran anda benar-benar bermanfaat dan komitmen yang dipersetujui mampu ditunaikan.","Apabila meminta bantuan daripada rakan setara, jelaskan perkara yang boleh anda tawarkan sebagai balasan. Tanya apa yang berguna baginya dan bincangkan jangkaan kedua-dua pihak.","Adakah persetujuan ini benar-benar adil dan berbaloi dari sudut pandangannya?"],"pressure":["Anda sanggup menetapkan tarikh akhir yang jelas, memberi peringatan dan membuat susulan apabila perlu. Jika digunakan dengan bijak, pendekatan ini dapat memastikan komitmen penting dipenuhi, terutama apabila masa terhad.","Desakan juga boleh menimbulkan tekanan jika orang lain tidak memahami sebabnya atau tidak diberi peluang menyuarakan kesulitan. Sebelum meningkatkan desakan, cuba fahami halangan yang mereka hadapi dan bantuan yang boleh diberikan.","Untuk tugasan yang mempunyai tarikh akhir penting, jelaskan mengapa tarikh itu perlu dipatuhi. Tanya tentang cabaran yang mungkin timbul dan persetujui masa untuk membuat susulan.","Adakah saya membantu orang lain bertanggungjawab, atau membuat mereka tertekan sehingga enggan bersuara?"],"legitimating":["Anda cenderung merujuk kepada peranan, dasar dan prosedur apabila membuat permintaan. Ini dapat mewujudkan kejelasan dan rasa adil, terutama apabila keputusan perlu konsisten serta dapat dipertanggungjawabkan.","Orang lebih mudah menerima peraturan apabila memahami tujuannya. Jelaskan perkara yang masih boleh dibincangkan dan perkara yang memang wajib dipatuhi. Walaupun tiada ruang untuk mengubah peraturan, mereka masih boleh memberi pandangan tentang pelaksanaannya.","Apabila merujuk kepada sesuatu dasar, terangkan tujuan dasar itu dan tanya: “Bagaimana kita boleh melaksanakannya dengan adil?”","Adakah saya membantu orang lain memahami keputusan tersebut, atau sekadar menegaskan kuasa saya?"],"coalition":["Anda memahami bahawa sokongan daripada beberapa pihak boleh meningkatkan keyakinan dan membantu menggerakkan perubahan. Kerjasama seperti ini amat berguna apabila sesuatu cadangan melibatkan pelbagai pasukan atau pihak berkepentingan.","Namun, seseorang mungkin keberatan menyuarakan pandangan berbeza jika berasa dirinya tidak mendapat sokongan. Jelaskan sokongan yang telah diperoleh tanpa memberi gambaran bahawa perbincangan sudah ditutup.","Apabila membentangkan cadangan yang disokong oleh beberapa pihak, terangkan siapa yang telah terlibat dan jemput orang lain mengemukakan soalan, kebimbangan atau cadangan alternatif.","Adakah orang yang tidak bersetuju masih berasa pandangannya didengari dan dihormati?"]},"focus":{"rational":["Dalam audit ini, anda kurang kerap memilih hujah berasaskan fakta berbanding pendekatan lain. Ini menunjukkan kecenderungan anda, bukan tahap kebolehan anda. Anda mungkin sudah mahir membina semangat atau hubungan; bukti yang ringkas boleh menjadikan pendekatan tersebut lebih meyakinkan.","Pilih satu permintaan yang akan dibuat tidak lama lagi. Sediakan satu fakta atau contoh yang boleh dipercayai, terangkan kepentingannya dan kaitkan dengan matlamat orang yang anda ingin yakinkan.","Apakah maklumat yang diperlukan oleh orang ini sebelum dia yakin untuk menyokong cadangan saya?"],"consultation":["Anda mungkin biasa menyediakan rancangan sendiri atau membuat keputusan dengan cepat. Ini boleh membantu, terutama apabila masa terhad. Namun, cuba libatkan orang lain lebih awal, ketika pandangan mereka masih boleh mempengaruhi hasil keputusan.","Kongsikan rancangan seterusnya dalam bentuk draf dan tanya: “Ada apa-apa yang saya terlepas pandang?” Gunakan satu cadangan yang praktikal, atau terangkan dengan baik mengapa cadangan tersebut tidak dapat dilaksanakan.","Bahagian manakah dalam keputusan saya yang benar-benar boleh dipengaruhi oleh pandangan orang lain?"],"collaboration":["Anda mungkin jelas tentang perkara yang perlu dilakukan, tetapi tidak selalu menawarkan bantuan secara langsung apabila membuat permintaan. Ini tidak bermakna anda tidak menyokong orang lain. Mungkin terdapat halangan yang mereka hadapi tetapi belum anda sedari.","Apabila membuat permintaan seterusnya, tanya: “Apa yang mungkin menyukarkan tugas ini?” Kemudian tawarkan satu bentuk bantuan yang realistik, seperti sumber, masa, pengenalan kepada orang yang sesuai atau penyesuaian cara kerja.","Apakah perkara yang saya anggap mudah, sedangkan mungkin sukar bagi mereka?"],"inspirational":["Anda mungkin lebih cenderung menjelaskan fakta, tugas atau tarikh akhir berbanding sebab sesuatu kerja itu penting. Pendekatan tersebut tetap berguna. Dengan mengaitkan tugas kepada tujuan yang lebih bermakna, anda boleh membantu orang lain mengekalkan motivasi.","Sebelum meminta bantuan pasukan, sediakan satu ayat ringkas tentang siapa yang akan mendapat manfaat dan mengapa hasil kerja itu penting. Kongsikannya, kemudian tanya apa yang menjadikan matlamat tersebut bermakna bagi mereka.","Apakah tujuan yang lebih bermakna di sebalik tugas yang saya minta orang lain lakukan?"],"apprising":["Anda mungkin lebih menumpukan keperluan pasukan atau organisasi tanpa menjelaskan manfaat kepada individu yang diminta membantu. Ini perkara biasa apabila kerja banyak. Pendekatan ini bukan tentang menjanjikan ganjaran, tetapi tentang memahami matlamat sebenar orang lain.","Sebelum membuat permintaan, tanya apa yang ingin dipelajari atau dicapai oleh orang tersebut. Jika tugas itu boleh membantunya, jelaskan kaitannya. Jika tidak, berterus terang.","Adakah saya hanya menjelaskan keperluan saya, atau sudah memahami perkara yang penting baginya?"],"ingratiation":["Dalam audit ini, anda kurang kerap memilih pendekatan yang menunjukkan penghargaan. Anda mungkin lebih selesa membiarkan hasil kerja menunjukkan nilainya, dan itu juga boleh dilihat sebagai sikap profesional. Namun, penghargaan yang dinyatakan secara jelas dapat membantu orang lain berasa dihargai.","Minggu ini, ucapkan terima kasih kepada seorang rakan sekerja atas sumbangan yang khusus, tanpa meminta apa-apa sebagai balasan. Terangkan apa yang dilakukannya dan bagaimana perkara itu membantu.","Siapakah yang banyak membantu saya kebelakangan ini tetapi belum menerima penghargaan sewajarnya?"],"personal":["Anda mungkin lebih suka mengekalkan hubungan kerja yang formal atau menyelesaikan tugas sendiri tanpa meminta pertolongan. Sikap berdikari ada kelebihannya. Namun, meminta bantuan daripada orang yang dipercayai juga membuka ruang untuk saling menyokong.","Pilih seorang rakan sekerja yang mempunyai hubungan baik dengan anda. Terangkan mengapa sesuatu perkara itu penting dan minta satu bentuk bantuan yang jelas. Berikan ruang untuknya menolak.","Adakah saya sedang memikul tanggungjawab sendirian walaupun ada rakan sekerja yang sudi membantu?"],"exchange":["Anda mungkin kurang selesa menganggap permintaan sebagai urusan timbal balas kerana tidak mahu hubungan terasa seperti transaksi. Itu satu pertimbangan yang baik. Namun, antara rakan setara, menawarkan bantuan sebagai balasan boleh menjadikan permintaan lebih adil.","Apabila meminta bantuan rakan sekerja, tanya: “Ada apa-apa yang boleh saya bantu sebagai balasan?” Jika bersetuju, bincangkan perkara yang akan dilakukan dan tunaikan janji tersebut.","Adakah saya meminta lebih banyak daripada orang lain berbanding apa yang sanggup saya sumbangkan?"],"pressure":["Anda kurang cenderung menggunakan tarikh akhir yang tegas atau membuat susulan berulang kali. Ini mungkin mencerminkan gaya yang menghormati ruang orang lain. Apabila tugas benar-benar penting, tarikh akhir yang jelas dan susulan yang berhemah boleh membantu tanpa menjejaskan kepercayaan.","Pilih satu komitmen penting. Persetujui tarikh siap bersama orang yang terlibat, jelaskan sebabnya dan tetapkan masa untuk membuat susulan.","Adakah sesuatu tugas kerap tertangguh kerana saya belum menetapkan masa siap yang jelas?"],"legitimating":["Anda mungkin lebih suka menggunakan hujah atau hubungan baik daripada merujuk kepada kuasa dan peraturan rasmi. Pendekatan itu boleh menjadikan komunikasi lebih mesra. Namun, apabila orang lain tidak pasti tentang sesuatu permintaan, rujukan kepada dasar atau prosedur yang dipersetujui dapat memberi kepastian.","Apabila seseorang teragak-agak untuk memenuhi permintaan, jelaskan dasar, persetujuan atau tanggungjawab rasmi yang menjadi asasnya. Terangkan juga mengapa perkara itu penting.","Bilakah penjelasan tentang peraturan dapat membantu orang lain lebih yakin untuk bersetuju?"],"coalition":["Anda mungkin biasa mengemukakan cadangan sendiri tanpa mendapatkan sokongan lebih awal. Ini boleh menjimatkan masa. Namun, bagi perubahan besar atau projek merentas pasukan, mendapatkan pandangan dan sokongan rakan sekerja yang dihormati dapat mengukuhkan cadangan anda.","Sebelum membentangkan cadangan penting, bincangkan idea itu dengan seorang atau dua orang rakan sekerja yang dipercayai. Minta pandangan mereka dan tanya sama ada mereka sudi menyokongnya.","Sokongan awal daripada siapakah yang dapat membantu cadangan saya lebih mudah diterima?"]},"what":{"rational":"Menggunakan penjelasan yang logik, fakta dan bukti yang jelas supaya orang lain memahami mengapa sesuatu permintaan itu munasabah.","consultation":"Melibatkan orang lain dalam penyediaan rancangan dan mendapatkan cadangan sebelum membuat keputusan akhir.","collaboration":"Menawarkan bantuan, masa atau sumber sendiri untuk memudahkan orang lain melaksanakan permintaan anda.","inspirational":"Mengaitkan permintaan dengan nilai, aspirasi dan matlamat yang lebih bermakna.","apprising":"Menjelaskan bagaimana sesuatu tugas dapat memberi manfaat kepada orang lain, termasuk dari segi kemahiran, matlamat atau kerjaya.","ingratiation":"Menunjukkan penghargaan secara ikhlas dan mengiktiraf sumbangan orang lain untuk membina hubungan kerja yang baik.","personal":"Meminta bantuan berdasarkan kepercayaan dan hubungan baik yang telah terjalin.","exchange":"Menawarkan bantuan atau sesuatu yang bernilai sebagai balasan supaya kedua-dua pihak mendapat manfaat.","pressure":"Menggunakan tarikh akhir, peringatan dan tindakan susulan supaya komitmen penting dapat ditunaikan.","legitimating":"Merujuk kepada dasar, peraturan, tanggungjawab rasmi atau amalan terdahulu bagi menjelaskan asas sesuatu permintaan.","coalition":"Mendapatkan sokongan orang lain untuk mengukuhkan cadangan dan meningkatkan keyakinan terhadapnya."}};
+if (LANG === "ms") {
+  TACTICS.forEach(function (t) {
+    t.name = MS_DATA.names[t.id].toUpperCase();
+    t.items = MS_DATA.items[t.id];
+    DESCRIPTIONS[t.id] = [MS_DATA.desc[t.id]].concat(DESCRIPTIONS[t.id].slice(1));
+    COACH_STRENGTH[t.id] = MS_DATA.strength[t.id];
+    COACH_FOCUS[t.id] = MS_DATA.focus[t.id];
+    GROWTH[t.id] = Object.assign({}, GROWTH[t.id], { what: MS_DATA.what[t.id] });
+  });
+}
 const MAX_SCORE = 4;      // head-to-heads per tactic
 const BALANCE = 2;        // MAX_SCORE / 2
 function bandFor(score) {
-  if (score <= 1) return { key: "UNDERUSED", label: "UNDERUSED" };
-  if (score <= 2) return { key: "SITUATIONAL", label: "SITUATIONAL" };
-  return { key: "SIGNATURE", label: "SIGNATURE" };
+  if (score <= 1) return { key: "UNDERUSED", label: tx("UNDERUSED", "JARANG DIPILIH") };
+  if (score <= 2) return { key: "SITUATIONAL", label: tx("SITUATIONAL", "MENGIKUT KEADAAN") };
+  return { key: "SIGNATURE", label: tx("SIGNATURE", "KECENDERUNGAN UTAMA") };
 }
 function shuffle(arr) {
   const a = arr.slice();
@@ -371,6 +399,12 @@ function computeConsistency(answers) {
   return { totalTriads: total, circular: circular, pct: pct };
 }
 function consistencyRead(pct) {
+  if (LANG === "ms") {
+    if (pct >= 90) return { label: "SANGAT KONSISTEN", text: "Jawapan anda sangat selaras antara satu sama lain. Profil ini memberikan gambaran yang jelas tentang kecenderungan pilihan anda." };
+    if (pct >= 75) return { label: "KONSISTEN", text: "Sebahagian besar jawapan anda selaras, walaupun terdapat sedikit perbezaan yang biasa berlaku. Corak keseluruhan masih dapat membantu anda memahami kecenderungan anda." };
+    if (pct >= 60) return { label: "AGAK BERBEZA-BEZA", text: "Sebahagian jawapan anda menunjukkan kecenderungan yang berbeza. Pendekatan dengan skor tertinggi dan terendah masih boleh dijadikan panduan, tetapi tafsirkan skor pertengahan dengan berhati-hati." };
+    return { label: "JAWAPAN BERBEZA-BEZA", text: "Banyak jawapan anda menunjukkan kecenderungan yang tidak seragam. Ini mungkin kerana cara anda bertindak berubah mengikut keadaan atau kerana anda menjawab dengan cepat. Gunakan profil ini sebagai panduan awal dan pertimbangkan untuk menjawab semula." };
+  }
   if (pct >= 90) return { label: "HIGHLY CONSISTENT", text: "Your choices were highly coherent — this profile is a stable read of your preferences." };
   if (pct >= 75) return { label: "CONSISTENT", text: "Your choices were largely coherent, with a few natural trade-off tensions. The overall shape is reliable." };
   if (pct >= 60) return { label: "MIXED", text: "A fair number of your choices pulled in different directions. The strongest and weakest levers are still meaningful; treat mid-range scores lightly." };
@@ -401,6 +435,25 @@ function Kicker(props) {
 function Rule(props) { return <div style={Object.assign({ height: 1, background: C.hairline, width: "100%" }, props.style)} />; }
 
 
+/* ============================================================ LANGUAGE TOGGLE */
+function LangToggle() {
+  const opt = function (code, label) {
+    const on = LANG === code;
+    return (
+      <button key={code} onClick={function () { if (!on) setLang(code); }} onMouseDown={function (e) { e.preventDefault(); }} aria-pressed={on}
+        style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.14em", padding: "6px 10px", border: "none", cursor: on ? "default" : "pointer",
+          background: on ? C.green : C.white, color: on ? C.white : C.muted }}>{label}</button>
+    );
+  };
+  return (
+    <div style={{ maxWidth: 720, margin: "0 auto", padding: "14px 28px 0", display: "flex", justifyContent: "flex-end" }}>
+      <div style={{ display: "inline-flex", border: "1px solid " + C.hairline }} role="group" aria-label="Language / Bahasa">
+        {opt("ms", "BM")}{opt("en", "EN")}
+      </div>
+    </div>
+  );
+}
+
 /* ============================================================ FRONT PAGE */
 const GIG_LOGO = "data:image/png;base64,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";
 const UI_ICONS = {"users": "<path d=\"M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2\"></path><circle cx=\"9\" cy=\"7\" r=\"4\"></circle><path d=\"M23 21v-2a4 4 0 0 0-3-3.87\"></path><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"></path>", "globe": "<circle cx=\"12\" cy=\"12\" r=\"10\"></circle><line x1=\"2\" y1=\"12\" x2=\"22\" y2=\"12\"></line><path d=\"M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z\"></path>", "trending-up": "<polyline points=\"23 6 13.5 15.5 8.5 10.5 1 18\"></polyline><polyline points=\"17 6 23 6 23 12\"></polyline>", "check": "<polyline points=\"20 6 9 17 4 12\"></polyline>", "lock": "<rect x=\"3\" y=\"11\" width=\"18\" height=\"11\" rx=\"2\" ry=\"2\"></rect><path d=\"M7 11V7a5 5 0 0 1 10 0v4\"></path>"};
@@ -422,53 +475,54 @@ const smallLabel = { fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpac
 
 function Landing(props) {
   const families = [
-    ["CORE · 5 TACTICS", "Commitment builders", ["Rational Persuasion", "Consultation", "Collaboration", "Inspirational Appeals", "Apprising"]],
-    ["SOFT · 3 TACTICS", "Relationship levers", ["Ingratiation", "Personal Appeals", "Exchange"]],
-    ["HARD · 3 TACTICS", "Pressure levers", ["Pressure", "Legitimating", "Coalition"]],
+    [tx("CORE · 5 TACTICS", "TERAS · 5 TAKTIK"), tx("Commitment builders", "Membina komitmen"), ["rational", "consultation", "collaboration", "inspirational", "apprising"]],
+    [tx("SOFT · 3 TACTICS", "LEMBUT · 3 TAKTIK"), tx("Relationship levers", "Mengukuhkan hubungan"), ["ingratiation", "personal", "exchange"]],
+    [tx("HARD · 3 TACTICS", "KERAS · 3 TAKTIK"), tx("Pressure levers", "Menegaskan tindakan"), ["pressure", "legitimating", "coalition"]],
   ];
   const outcomes = [
-    ["Commitment", "People agree and put in real effort. Most often the result of Core tactics.", C.green],
-    ["Compliance", "People do what is asked, but only the minimum, and often reluctantly.", C.ink],
-    ["Resistance", "People push back, delay or quietly avoid. A common cost of overused Hard tactics.", C.grey],
+    [tx("Commitment", "Komitmen"), tx("People agree and put in real effort. Most often the result of Core tactics.", "Orang lain bersetuju dan benar-benar berusaha menjayakan tugas. Ini lebih kerap dicapai melalui pendekatan Teras."), C.green],
+    [tx("Compliance", "Pematuhan"), tx("People do what is asked, but only the minimum, and often reluctantly.", "Orang lain melakukan apa yang diminta, tetapi mungkin hanya pada tahap minimum dan tanpa kerelaan sepenuhnya."), C.ink],
+    [tx("Resistance", "Penentangan"), tx("People push back, delay or quietly avoid. A common cost of overused Hard tactics.", "Orang lain membantah, melengah-lengahkan tugas atau cuba mengelak. Ini boleh berlaku apabila pendekatan Keras digunakan secara berlebihan."), C.grey],
   ];
   const gets = [
-    ["A profile across all 11 levers", ", grouped into Core, Soft and Hard"],
-    ["Every signature strength", ", with a coaching review and a useful stretch"],
-    ["Each development focus area", ", with a small experiment to try"],
-    ["A consistency score", " showing how reliable the read is"],
-    ["A PDF download", " to keep and bring to your debrief"],
+    LANG === "ms" ? ["Gaya anda mempengaruhi orang lain", ", dengan ringkasan pendekatan yang biasa anda gunakan"] : ["Your influence style", ", an overall summary of how you influence"],
+    LANG === "ms" ? ["Profil bagi kesemua 11 pendekatan", ", yang dibahagikan kepada kumpulan Teras, Lembut dan Keras"] : ["A profile across all 11 levers", ", grouped into Core, Soft and Hard"],
+    LANG === "ms" ? ["Kekuatan utama anda", ", berserta ulasan dan cadangan untuk terus berkembang"] : ["Every signature strength", ", with a coaching review and a useful stretch"],
+    LANG === "ms" ? ["Bidang yang boleh dipertingkatkan", ", bersama langkah kecil yang boleh anda cuba"] : ["Each development focus area", ", with a small experiment to try"],
+    LANG === "ms" ? ["Skor ketekalan jawapan", " yang menunjukkan sejauh mana pilihan anda selaras"] : ["A consistency score", " showing how reliable the read is"],
+    LANG === "ms" ? ["Laporan dalam format PDF", " yang boleh disimpan dan dibawa ke sesi perbincangan"] : ["A PDF download", " to keep and bring to your debrief"],
   ];
   return (
     <div style={{ maxWidth: 720, margin: "0 auto", padding: "36px 28px 64px" }}>
       {/* hero */}
       <img src={GIG_LOGO} alt="Growth Impact Group" style={{ height: 40, width: "auto", display: "block" }} />
       <div style={{ marginTop: 48 }}>
-        <Kicker>{"LEADERSHIP DIAGNOSTIC" + (SESSION ? " · " + SESSION.toUpperCase() : "")}</Kicker>
+        <Kicker>{tx("LEADERSHIP DIAGNOSTIC", "PENILAIAN KEPIMPINAN") + (SESSION ? " · " + SESSION.toUpperCase() : "")}</Kicker>
         <h1 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: "clamp(44px, 12vw, 76px)", lineHeight: 0.95, color: C.ink, margin: "18px 0 0", letterSpacing: "-0.01em" }}>
-          The Influence<br /><span style={{ color: C.green }}>Self-Audit</span>
+          {tx("The Influence", "Audit Kendiri")}<br /><span style={{ color: C.green }}>{tx("Self-Audit", "Pengaruh")}</span>
         </h1>
         <p style={{ fontFamily: BODY, fontStyle: "italic", fontSize: 19, color: C.muted, lineHeight: 1.45, margin: "18px 0 0", maxWidth: 560 }}>
-          Know which levers you actually pull when you need others’ support, and which one to build next.
+          {tx("Know which levers you actually pull when you need others’ support, and which one to build next.", "Kenali cara yang biasa anda gunakan untuk mendapatkan sokongan orang lain dan pendekatan yang boleh anda tingkatkan.")}
         </p>
       </div>
       <Rule style={{ margin: "30px 0 14px" }} />
-      <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.grey, margin: 0 }}>11 influence tactics · 22 forced choices · Under 2 minutes · Instant personal report</p>
+      <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.grey, margin: 0 }}>{tx("11 influence tactics · 22 forced choices · Under 2 minutes · Instant personal report", "11 pendekatan mempengaruhi · 22 soalan pilihan berpasangan · Kurang 2 minit · Laporan peribadi serta-merta")}</p>
 
       {/* opening copy */}
       <div style={{ marginTop: 34 }}>
-        <p style={{ fontFamily: BODY, fontSize: 17, color: C.ink, lineHeight: 1.65, margin: 0 }}>We all have our own ways of influencing others. Some approaches work well in certain situations, but may be less effective in others.</p>
-        <p style={{ fontFamily: BODY, fontSize: 17, color: C.ink, lineHeight: 1.65, margin: "14px 0 0" }}>The key is knowing what works, when to use it, and when to try something different.</p>
-        <p style={{ fontFamily: BODY, fontSize: 17, color: C.ink, lineHeight: 1.65, margin: "14px 0 0" }}>Take this 2-minute Influence Self-Audit to discover your influencing strengths, identify habits that may be holding you back, and find practical ways to influence others more effectively.</p>
-        <p style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 22, lineHeight: 1.2, color: C.ink, margin: "22px 0 0", paddingLeft: 14, borderLeft: "3px solid " + C.green }}>Better influence starts with understanding how you influence <span style={{ color: C.green }}>today</span>.</p>
+        <p style={{ fontFamily: BODY, fontSize: 17, color: C.ink, lineHeight: 1.65, margin: 0 }}>{tx("We all have our own ways of influencing others. Some approaches work well in certain situations, but may be less effective in others.", "Setiap orang mempunyai cara tersendiri untuk mempengaruhi orang lain. Sesuatu pendekatan mungkin berkesan dalam satu keadaan, tetapi kurang sesuai dalam keadaan yang lain.")}</p>
+        <p style={{ fontFamily: BODY, fontSize: 17, color: C.ink, lineHeight: 1.65, margin: "14px 0 0" }}>{tx("The key is knowing what works, when to use it, and when to try something different.", "Yang penting ialah mengetahui pendekatan yang berkesan, masa yang sesuai untuk menggunakannya dan bila kita perlu mencuba cara lain.")}</p>
+        <p style={{ fontFamily: BODY, fontSize: 17, color: C.ink, lineHeight: 1.65, margin: "14px 0 0" }}>{tx("Take this 2-minute Influence Self-Audit to discover your influencing strengths, identify habits that may be holding you back, and find practical ways to influence others more effectively.", "Luangkan dua minit untuk menjawab Audit Kendiri Pengaruh ini. Kenal pasti kekuatan anda, sedari tabiat yang mungkin mengehadkan keberkesanan anda dan temui cara praktikal untuk mendapatkan sokongan orang lain.")}</p>
+        <p style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 22, lineHeight: 1.2, color: C.ink, margin: "22px 0 0", paddingLeft: 14, borderLeft: "3px solid " + C.green }}>{tx("Better influence starts with understanding how you influence ", "Untuk mempengaruhi dengan lebih berkesan, fahami dahulu pendekatan anda ")}<span style={{ color: C.green }}>{tx("today", "hari ini")}</span>.</p>
       </div>
 
       {/* why it matters */}
-      <Section kicker="WHY IT MATTERS" title="Most influence happens without authority"
-        lead="Every day, you need support from colleagues, clients and leaders you don’t manage. How you go about it decides whether people truly commit.">
+      <Section kicker={tx("WHY IT MATTERS", "MENGAPA INI PENTING")} title={tx("Most influence happens without authority", "Untuk mempengaruhi orang lain, anda tidak semestinya mempunyai kuasa")}
+        lead={tx("Every day, you need support from colleagues, clients and leaders you don’t manage. How you go about it decides whether people truly commit.", "Setiap hari, kita memerlukan kerjasama rakan sekerja, pelanggan dan pemimpin yang tidak berada di bawah seliaan kita. Cara kita mendapatkan sokongan menentukan sama ada mereka benar-benar komited.")}>
         <div style={cols3}>
-          {[["users", "Across teams", "Matrix structures and shared projects make results depend on people outside your reporting line."],
-            ["globe", "With clients", "Client-facing work means moving decisions that sit firmly outside your control."],
-            ["trending-up", "Upwards", "Good ideas only land when senior leaders are persuaded to back them."]].map(function (c) {
+          {[["users", tx("Across teams", "Merentas pasukan"), tx("Matrix structures and shared projects make results depend on people outside your reporting line.", "Dalam projek yang melibatkan pelbagai pasukan, kejayaan bergantung pada orang yang bukan di bawah seliaan langsung anda.")],
+            ["globe", tx("With clients", "Berurusan dengan pelanggan"), tx("Client-facing work means moving decisions that sit firmly outside your control.", "Apabila berurusan dengan pelanggan, anda perlu mempengaruhi keputusan yang bukan sepenuhnya dalam kawalan anda.")],
+            ["trending-up", tx("Upwards", "Dengan pihak atasan"), tx("Good ideas only land when senior leaders are persuaded to back them.", "Idea yang baik memerlukan sokongan pihak pengurusan kanan untuk dilaksanakan.")]].map(function (c) {
             return (
               <div key={c[1]} style={{ borderTop: "1px solid " + C.hairline, paddingTop: 18 }}>
                 <LineIcon markup={UI_ICONS[c[0]]} size={28} />
@@ -482,20 +536,20 @@ function Landing(props) {
 
       {/* early start: the rest of the page is background reading */}
       <div style={{ marginTop: 36, background: C.tint, border: "1px solid " + C.green, borderRadius: 10, padding: "26px 24px" }}>
-        <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, lineHeight: 1.1 }}>Ready to find out?</div>
-        <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>22 quick choices, under two minutes. Go with your gut; there are no right answers.</p>
-        <button onClick={props.onBegin} style={Object.assign({}, btnPrimary, btnGo, { marginTop: 20 })} onMouseDown={function (e) { e.preventDefault(); }}>BEGIN THE TEST →</button>
-        <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.grey, textAlign: "center", margin: "12px 0 0" }}>Or read on to learn more about the audit.</p>
+        <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, lineHeight: 1.1 }}>{tx("Ready to find out?", "Ingin kenali gaya anda?")}</div>
+        <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>{tx("22 quick choices, under two minutes. Go with your gut; there are no right answers.", "Jawab 22 soalan ringkas dalam masa kurang dua minit. Pilih jawapan yang paling menggambarkan diri anda. Tiada jawapan betul atau salah.")}</p>
+        <button onClick={props.onBegin} style={Object.assign({}, btnPrimary, btnGo, { marginTop: 20 })} onMouseDown={function (e) { e.preventDefault(); }}>{tx("BEGIN THE TEST →", "MULA MENJAWAB →")}</button>
+        <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.grey, textAlign: "center", margin: "12px 0 0" }}>{tx("Or read on to learn more about the audit.", "Atau teruskan membaca untuk mengetahui lebih lanjut tentang penilaian ini.")}</p>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 44 }}>
         <span style={{ flex: 1, height: 1, background: C.hairline }} />
-        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.26em", color: C.grey }}>MORE ABOUT THE AUDIT</span>
+        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.26em", color: C.grey }}>{tx("MORE ABOUT THE AUDIT", "MENGENAI PENILAIAN INI")}</span>
         <span style={{ flex: 1, height: 1, background: C.hairline }} />
       </div>
 
       {/* framework */}
-      <Section kicker="THE FRAMEWORK" title="Built on Yukl’s eleven influence tactics"
-        lead="Gary Yukl’s research on proactive influence tactics is one of the most widely cited models of how people win support at work. The audit groups his eleven tactics into three families.">
+      <Section kicker={tx("THE FRAMEWORK", "RANGKA KERJA")} title={tx("Built on Yukl’s eleven influence tactics", "Berdasarkan 11 taktik mempengaruhi yang diperkenalkan oleh Yukl")}
+        lead={tx("Gary Yukl’s research on proactive influence tactics is one of the most widely cited models of how people win support at work. The audit groups his eleven tactics into three families.", "Kajian Gary Yukl tentang taktik mempengaruhi secara proaktif sering dijadikan rujukan untuk memahami cara mendapatkan sokongan di tempat kerja. Penilaian ini membahagikan 11 taktik tersebut kepada tiga kumpulan.")}>
         <div style={cols3}>
           {families.map(function (f) {
             return (
@@ -503,7 +557,7 @@ function Landing(props) {
                 <div style={smallLabel}>{f[0]}</div>
                 <div style={Object.assign({}, colHead, { marginTop: 8 })}>{f[1]}</div>
                 <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.7 }}>
-                  {f[2].map(function (t) { return <li key={t}>{t}</li>; })}
+                  {f[2].map(function (t) { return <li key={t}>{niceName(TACTICS.filter(function (x) { return x.id === t; })[0].name)}</li>; })}
                 </ul>
               </div>
             );
@@ -512,7 +566,7 @@ function Landing(props) {
       </Section>
 
       {/* outcomes */}
-      <Section kicker="WHY THE LEVER MATTERS" title="The lever you pull shapes the response you get">
+      <Section kicker={tx("WHY THE LEVER MATTERS", "KESAN SETIAP PENDEKATAN")} title={tx("The lever you pull shapes the response you get", "Cara anda mempengaruhi menentukan respons orang lain")}>
         <div style={cols3}>
           {outcomes.map(function (o, i) {
             return (
@@ -528,26 +582,26 @@ function Landing(props) {
           })}
         </div>
         <p style={{ fontFamily: BODY, fontSize: 18, color: C.ink, lineHeight: 1.5, margin: "26px 0 0" }}>
-          Strengthening Core tactics is the most direct route from compliance to <span style={{ color: C.green, fontWeight: 700 }}>commitment</span>.
+          {tx("Strengthening Core tactics is the most direct route from compliance to ", "Memperkukuh pendekatan Teras dapat membantu mengubah pematuhan semata-mata kepada ")}<span style={{ color: C.green, fontWeight: 700 }}>{tx("commitment", "komitmen")}</span>.
         </p>
       </Section>
 
       {/* how it works */}
-      <Section kicker="HOW IT WORKS" title="Forced choice, not self-flattery"
-        lead="Rating scales let everyone score themselves highly. This audit shows two statements at a time and asks which is more true of you. Every answer is a trade-off, so your result reveals the levers you genuinely favour.">
+      <Section kicker={tx("HOW IT WORKS", "CARA IA BERFUNGSI")} title={tx("Forced choice, not self-flattery", "Pilih yang paling menggambarkan diri anda")}
+        lead={tx("Rating scales let everyone score themselves highly. This audit shows two statements at a time and asks which is more true of you. Every answer is a trade-off, so your result reveals the levers you genuinely favour.", "Dalam skala penilaian biasa, seseorang boleh memberikan skor tinggi kepada dirinya untuk hampir semua perkara. Di sini, anda akan melihat dua pernyataan dan memilih satu yang lebih menggambarkan diri anda. Melalui pilihan ini, anda dapat mengenal pasti pendekatan yang lebih cenderung anda gunakan.")}>
         <div style={{ display: "flex", alignItems: "stretch", gap: 10, marginTop: 22, flexWrap: "wrap" }}>
           <div style={{ flex: "1 1 220px", display: "flex", alignItems: "center", gap: 12, border: "1px solid " + C.hairline, padding: "14px", fontFamily: BODY, fontSize: 14.5, color: C.ink }}>
             <LineIcon markup={ICONS.rational[1]} size={24} />
-            <span>I explain why I’m asking.</span>
+            <span>{TACTICS[0].items[1]}</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.16em", color: C.green }}>OR</div>
+          <div style={{ display: "flex", alignItems: "center", fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.16em", color: C.green }}>{tx("OR", "ATAU")}</div>
           <div style={{ flex: "1 1 220px", display: "flex", alignItems: "center", gap: 12, border: "1px solid " + C.hairline, padding: "14px", fontFamily: BODY, fontSize: 14.5, color: C.ink }}>
             <LineIcon markup={ICONS.coalition[1]} size={24} />
-            <span>I get support from others before I ask.</span>
+            <span>{TACTICS[10].items[1]}</span>
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", border: "1px solid " + C.hairline, marginTop: 22 }}>
-          {[["22", "quick choices"], ["<2", "minutes, on any phone"], ["11", "levers profiled"]].map(function (st, i) {
+          {[["22", tx("quick choices", "pilihan ringkas")], ["<2", tx("minutes, on any phone", "minit, melalui telefon")], ["11", tx("levers profiled", "pendekatan dinilai")]].map(function (st, i) {
             return (
               <div key={st[1]} style={{ padding: "16px 8px", textAlign: "center", borderLeft: i === 0 ? "none" : "1px solid " + C.hairline }}>
                 <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 32, color: C.ink }}>{st[0]}</div>
@@ -559,7 +613,7 @@ function Landing(props) {
       </Section>
 
       {/* what you get */}
-      <Section kicker="WHAT YOU GET" title="An instant, personal influence profile">
+      <Section kicker={tx("WHAT YOU GET", "APA YANG ANDA DAPAT")} title={tx("An instant, personal influence profile", "Laporan peribadi tentang gaya anda mempengaruhi orang lain")}>
         <div style={{ marginTop: 18 }}>
           {gets.map(function (g) {
             return (
@@ -573,24 +627,24 @@ function Landing(props) {
       </Section>
 
       {/* is / isn't */}
-      <Section kicker="BEFORE YOU START" title="What the audit is, and what it isn’t">
+      <Section kicker={tx("BEFORE YOU START", "SEBELUM ANDA MULA")} title={tx("What the audit is, and what it isn’t", "Tujuan dan batasan penilaian ini")}>
         <div style={cols3}>
           <div style={{ borderTop: "2px solid " + C.green, paddingTop: 14 }}>
-            <div style={smallLabel}>IT IS</div>
+            <div style={smallLabel}>{tx("IT IS", "PENILAIAN INI")}</div>
             <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.65 }}>
-              <li>A development tool showing the levers you prefer</li>
-              <li>A profile that compares your own levers with each other</li>
-              <li>Grounded in Yukl’s published research on influence tactics</li>
-              <li>Private: you see only your own result</li>
+              <li>{tx("A development tool showing the levers you prefer", "Alat untuk mengenal pasti pendekatan yang biasa anda pilih")}</li>
+              <li>{tx("A profile that compares your own levers with each other", "Profil yang membandingkan kecenderungan anda terhadap setiap pendekatan")}</li>
+              <li>{tx("Grounded in Yukl’s published research on influence tactics", "Berasaskan penyelidikan Yukl tentang taktik mempengaruhi")}</li>
+              <li>{tx("Private: you see only your own result", "Peribadi: anda hanya dapat melihat keputusan sendiri")}</li>
             </ul>
           </div>
           <div style={{ borderTop: "2px solid " + C.hairline, paddingTop: 14 }}>
-            <div style={Object.assign({}, smallLabel, { color: C.grey })}>IT ISN’T</div>
+            <div style={Object.assign({}, smallLabel, { color: C.grey })}>{tx("IT ISN’T", "PENILAIAN INI BUKAN")}</div>
             <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.65 }}>
-              <li>A test of your ability or performance</li>
-              <li>A ranking of you against other people</li>
-              <li>A clinically validated psychometric test</li>
-              <li>Visible to other participants</li>
+              <li>{tx("A test of your ability or performance", "Ujian kebolehan atau prestasi kerja")}</li>
+              <li>{tx("A ranking of you against other people", "Perbandingan kedudukan anda dengan peserta lain")}</li>
+              <li>{tx("A clinically validated psychometric test", "Ujian psikometrik yang telah disahkan secara klinikal")}</li>
+              <li>{tx("Visible to other participants", "Sesuatu yang boleh dilihat oleh peserta lain")}</li>
             </ul>
           </div>
         </div>
@@ -598,9 +652,9 @@ function Landing(props) {
 
       {/* call to action */}
       <div style={{ marginTop: 48, background: C.tint, border: "1px solid " + C.green, borderRadius: 10, padding: "26px 24px" }}>
-        <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, lineHeight: 1.1 }}>Ready? It takes under two minutes.</div>
-        <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>Go with your gut. There are no right answers.</p>
-        <button onClick={props.onBegin} style={Object.assign({}, btnPrimary, btnGo, { marginTop: 20 })} onMouseDown={function (e) { e.preventDefault(); }}>BEGIN THE TEST →</button>
+        <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, lineHeight: 1.1 }}>{tx("Ready? It takes under two minutes.", "Bersedia? Hanya perlu kurang dua minit.")}</div>
+        <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>{tx("Go with your gut. There are no right answers.", "Pilih jawapan yang paling menggambarkan diri anda. Tiada jawapan betul atau salah.")}</p>
+        <button onClick={props.onBegin} style={Object.assign({}, btnPrimary, btnGo, { marginTop: 20 })} onMouseDown={function (e) { e.preventDefault(); }}>{tx("BEGIN THE TEST →", "MULA MENJAWAB →")}</button>
       </div>
       <p style={{ fontFamily: BODY, fontSize: 11.5, color: C.grey, textAlign: "center", margin: "28px 0 0" }}>© 2026 Growth Impact Group Malaysia Sdn. Bhd.</p>
     </div>
@@ -618,58 +672,62 @@ function Intro(props) {
   return (
     <div style={{ maxWidth: 620, margin: "0 auto", padding: "28px 28px 72px" }}>
       <button onClick={props.onBack} onMouseDown={function (e) { e.preventDefault(); }}
-        style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.12em", background: "none", border: "none", cursor: "pointer", color: C.muted, padding: "6px 0", marginBottom: 22 }}>← ABOUT THE AUDIT</button>
+        style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.12em", background: "none", border: "none", cursor: "pointer", color: C.muted, padding: "6px 0", marginBottom: 22 }}>{tx("← ABOUT THE AUDIT", "← KEMBALI KE MAKLUMAT PENILAIAN")}</button>
       <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.32em", color: C.grey }}>GROWTH IMPACT GROUP</div>
-      <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.32em", color: C.grey, marginTop: 4 }}>SELF-ASSESSMENT{SESSION ? " · " + SESSION.toUpperCase() : ""}</div>
+      <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.32em", color: C.grey, marginTop: 4 }}>{tx("SELF-ASSESSMENT", "PENILAIAN KENDIRI")}{SESSION ? " · " + SESSION.toUpperCase() : ""}</div>
       <h1 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 52, lineHeight: 0.98, color: C.ink, margin: "26px 0 0", letterSpacing: "-0.01em" }}>
-        The Influence<br /><span style={{ color: C.green }}>Self-Audit</span>
+        {tx("The Influence", "Audit Kendiri")}<br /><span style={{ color: C.green }}>{tx("Self-Audit", "Pengaruh")}</span>
       </h1>
       <p style={{ fontFamily: BODY, fontSize: 16, color: C.muted, lineHeight: 1.55, margin: "20px 0 0", maxWidth: 500 }}>
-        Which levers of influence do you actually reach for? A forced-choice diagnostic across eleven
-        proactive influence tactics.
+        {tx("Which levers of influence do you actually reach for? A forced-choice diagnostic across eleven proactive influence tactics.", "Apakah pendekatan yang anda lebih cenderung gunakan untuk mempengaruhi orang lain? Pilih antara dua pernyataan bagi menilai 11 taktik mempengaruhi.")}
       </p>
 
       <Rule style={{ margin: "34px 0 26px" }} />
 
-      <Kicker>HOW IT WORKS</Kicker>
+      <Kicker>{tx("HOW IT WORKS", "CARA IA BERFUNGSI")}</Kicker>
+      {LANG === "ms" ? (
+        <p style={{ fontFamily: BODY, fontSize: 15, color: C.ink, lineHeight: 1.6, margin: "14px 0 0" }}>
+          Anda akan melihat <b>dua pernyataan pada satu masa</b>. Pilih pernyataan yang <b>lebih menggambarkan cara anda bertindak</b>.
+          Selepas itu, pasangan pernyataan seterusnya akan dipaparkan. Jawab secara spontan; tiada jawapan betul atau salah.
+          Setiap pilihan membantu menunjukkan pendekatan yang lebih kerap anda gunakan.
+        </p>
+      ) : (
       <p style={{ fontFamily: BODY, fontSize: 15, color: C.ink, lineHeight: 1.6, margin: "14px 0 0" }}>
         You’ll see <b>two statements at a time</b>. Tap the one that is <b>more true of you</b> — then the
         next pair appears. Go with your gut; there are no right answers. Because every choice is a
         trade-off, the result reveals the levers you genuinely favour.
       </p>
+      )}
 
       <div style={{ display: "flex", alignItems: "stretch", gap: 10, marginTop: 22 }}>
         <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, border: "1px solid " + C.hairline, padding: "12px", fontFamily: BODY, fontSize: 13, color: C.ink }}>
           <LineIcon markup={ICONS.rational[1]} size={22} />
-          <span>I explain <b>why</b> I’m asking.</span>
+          <span>{TACTICS[0].items[1]}</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.16em", color: C.green }}>OR</div>
+        <div style={{ display: "flex", alignItems: "center", fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.16em", color: C.green }}>{tx("OR", "ATAU")}</div>
         <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, border: "1px solid " + C.hairline, padding: "12px", fontFamily: BODY, fontSize: 13, color: C.ink }}>
           <LineIcon markup={ICONS.coalition[1]} size={22} />
-          <span>I get <b>support</b> from others before I ask.</span>
+          <span>{TACTICS[10].items[1]}</span>
         </div>
       </div>
 
       <div style={{ marginTop: 24 }}>
-        <label style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.18em", color: C.grey }}>YOUR NAME (OPTIONAL)</label>
-        <input value={props.name} onChange={function (e) { props.setName(e.target.value); }} placeholder="e.g. Aisha R."
+        <label style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.18em", color: C.grey }}>{tx("YOUR NAME (OPTIONAL)", "NAMA (TIDAK WAJIB)")}</label>
+        <input value={props.name} onChange={function (e) { props.setName(e.target.value); }} placeholder={tx("e.g. Aisha R.", "cth. Aisha R.")}
           style={{ display: "block", width: "100%", marginTop: 8, padding: "12px 14px", fontFamily: BODY, fontSize: 15, color: C.ink, border: "1px solid " + C.hairline, outline: "none" }} />
-        <label style={{ display: "block", marginTop: 18, fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.18em", color: C.grey }}>YOUR EMAIL (OPTIONAL)</label>
-        <input type="email" value={props.email} onChange={function (e) { props.setEmail(e.target.value); setEmailErr(false); }} placeholder="e.g. aisha@company.com"
+        <label style={{ display: "block", marginTop: 18, fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.18em", color: C.grey }}>{tx("YOUR EMAIL (OPTIONAL)", "ALAMAT E-MEL (TIDAK WAJIB)")}</label>
+        <input type="email" value={props.email} onChange={function (e) { props.setEmail(e.target.value); setEmailErr(false); }} placeholder={tx("e.g. aisha@company.com", "cth. aisha@syarikat.com")}
           style={{ display: "block", width: "100%", marginTop: 8, padding: "12px 14px", fontFamily: BODY, fontSize: 15, color: C.ink, border: "1px solid " + (emailErr ? "#B23B3B" : C.hairline), outline: "none" }} />
-        {emailErr && <p style={{ fontFamily: BODY, fontSize: 12.5, color: "#B23B3B", margin: "6px 0 0" }}>Please check your email address, or leave it blank.</p>}
+        {emailErr && <p style={{ fontFamily: BODY, fontSize: 12.5, color: "#B23B3B", margin: "6px 0 0" }}>{tx("Please check your email address, or leave it blank.", "Sila semak alamat e-mel anda atau kosongkan ruangan ini.")}</p>}
         <p style={{ fontFamily: BODY, fontSize: 11.5, color: C.grey, lineHeight: 1.5, margin: "10px 0 0" }}>
-          Your name, email and result are saved privately for your facilitator at Growth Impact Group and used only for this programme. They are not shared with other participants.
+          {tx("Your name, email and result are saved privately for your facilitator at Growth Impact Group and used only for this programme. They are not shared with other participants.", "Nama, alamat e-mel dan keputusan anda akan disimpan secara sulit untuk kegunaan fasilitator Growth Impact Group bagi program ini sahaja. Maklumat ini tidak dikongsi dengan peserta lain.")}
         </p>
       </div>
 
-      <button onClick={begin} style={btnPrimary} onMouseDown={function (e) { e.preventDefault(); }}>BEGIN THE AUDIT →</button>
+      <button onClick={begin} style={btnPrimary} onMouseDown={function (e) { e.preventDefault(); }}>{tx("BEGIN THE AUDIT →", "MULAKAN AUDIT →")}</button>
 
       <p style={{ fontFamily: BODY, fontSize: 11.5, color: C.grey, lineHeight: 1.5, marginTop: 26 }}>
-        22 quick choices · under 2 minutes. Every tactic is compared four times in a balanced design, so
-        each lever scores 0–4. This is a <i>relative</i> profile — it compares your own levers against
-        each other, not against other people. Informed by Yukl’s proactive influence tactics; a
-        development tool, not a validated psychometric test.
+        {tx("22 quick choices · under 2 minutes. Every tactic is compared four times in a balanced design, so each lever scores 0–4. This is a relative profile: it compares your own levers against each other, not against other people. Informed by Yukl’s proactive influence tactics; a development tool, not a validated psychometric test.", "22 soalan ringkas · kurang 2 minit. Setiap pendekatan dibandingkan sebanyak empat kali dan menerima skor antara 0 hingga 4. Keputusan ini menunjukkan kecenderungan anda terhadap pendekatan yang berbeza, bukan perbandingan dengan peserta lain. Penilaian ini berasaskan taktik mempengaruhi Yukl dan bertujuan membantu pembangunan diri; ia bukan ujian psikometrik yang telah disahkan.")}
       </p>
     </div>
   );
@@ -705,31 +763,31 @@ function Audit(props) {
   return (
     <div ref={topRef} style={{ maxWidth: 560, margin: "0 auto", padding: "28px 28px 40px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.24em", color: C.grey }}>INFLUENCE SELF-AUDIT</span>
+        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.24em", color: C.grey }}>{tx("INFLUENCE SELF-AUDIT", "AUDIT KENDIRI PENGARUH")}</span>
         <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.16em", color: C.grey }}>{page + 1} / {total}</span>
       </div>
       <div style={{ height: 3, background: C.hairline, marginTop: 8, position: "relative" }}>
         <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: pct + "%", background: C.green, transition: "width .3s ease" }} />
       </div>
-      <p style={{ fontFamily: BODY, fontStyle: "italic", fontSize: 15, color: C.muted, textAlign: "center", margin: "36px 0 0" }}>When you need someone’s help or agreement…</p>
+      <p style={{ fontFamily: BODY, fontStyle: "italic", fontSize: 15, color: C.muted, textAlign: "center", margin: "36px 0 0" }}>{tx("When you need someone’s help or agreement…", "Apabila anda memerlukan bantuan atau persetujuan orang lain…")}</p>
       <h2 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 30, lineHeight: 1.02, color: C.ink, margin: "8px 0 4px", textAlign: "center" }}>
-        Which sounds<br />more like you?
+        {tx("Which sounds", "Pernyataan manakah")}<br />{tx("more like you?", "lebih menggambarkan diri anda?")}
       </h2>
-      <p style={{ fontFamily: BODY, fontSize: 13, color: C.grey, textAlign: "center", margin: "0 0 26px" }}>Go with your gut.</p>
+      <p style={{ fontFamily: BODY, fontSize: 13, color: C.grey, textAlign: "center", margin: "0 0 26px" }}>{tx("Go with your gut.", "Pilih secara spontan.")}</p>
       <Card side={pair.left} />
       <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "10px 0" }}>
         <span style={{ flex: 1, height: 1, background: C.hairline }} />
-        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.2em", color: C.green }}>OR</span>
+        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.2em", color: C.green }}>{tx("OR", "ATAU")}</span>
         <span style={{ flex: 1, height: 1, background: C.hairline }} />
       </div>
       <Card side={pair.right} />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 26 }}>
         <button onClick={function () { if (page > 0) props.setPage(page - 1); }} disabled={page === 0} onMouseDown={function (e) { e.preventDefault(); }}
-          style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.12em", background: "none", border: "none", cursor: page === 0 ? "default" : "pointer", color: page === 0 ? C.hairline : C.muted, padding: "10px 0" }}>← BACK</button>
+          style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.12em", background: "none", border: "none", cursor: page === 0 ? "default" : "pointer", color: page === 0 ? C.hairline : C.muted, padding: "10px 0" }}>{tx("← BACK", "← KEMBALI")}</button>
         {chosen !== undefined && (
           <button onClick={function () { page < total - 1 ? props.setPage(page + 1) : props.onFinish(); }} onMouseDown={function (e) { e.preventDefault(); }}
             style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.12em", background: "none", border: "none", cursor: "pointer", color: C.ink, padding: "10px 0" }}>
-            {page < total - 1 ? "NEXT →" : "SEE MY PROFILE →"}
+            {page < total - 1 ? tx("NEXT →", "SETERUSNYA →") : tx("SEE MY PROFILE →", "LIHAT PROFIL SAYA →")}
           </button>
         )}
       </div>
@@ -739,7 +797,7 @@ function Audit(props) {
 
 /* ============================================================ RESULTS */
 /* ---- Influence style: overall profile at the top of the report ---- */
-const STYLES = {
+const STYLES_EN = {
   builder: { name: "The Builder", headline: "You win hearts and minds, and they stay won.",
     desc: "You are a natural commitment-builder. You lead with sound reasons, bring people into the thinking and connect the work to something bigger than the task. This is the style most closely linked to genuine buy-in, the kind of influence that keeps working long after the meeting ends. When you ask, people don’t just agree. They own it.",
     people: "credible, inclusive and genuinely worth following.",
@@ -769,8 +827,106 @@ const STYLES = {
     people: "versatile, perceptive and impressively resourceful.",
     further: "Now make it deliberate. Choosing your move on purpose for each situation is what turns versatility into mastery." },
 };
+const STYLES_MS = {
+  "builder": {
+    "name": "Pembina Komitmen",
+    "headline": "Anda meyakinkan orang lain sehingga mereka benar-benar mahu terlibat.",
+    "desc": "Anda cenderung membina komitmen melalui alasan yang kukuh, penglibatan orang lain dan tujuan yang jelas. Anda bukan sekadar meminta persetujuan, tetapi membantu orang memahami kepentingan tugas dan merasakan bahawa mereka turut bertanggungjawab terhadap kejayaannya. Pendekatan ini boleh mengekalkan sokongan walaupun selepas perbincangan selesai.",
+    "people": "meyakinkan, terbuka kepada pandangan orang lain dan mampu memberi dorongan.",
+    "further": "Apabila masa terhad, cuba gabungkan pendekatan ini dengan komunikasi yang mesra atau peringatan yang lebih tegas apabila benar-benar diperlukan."
+  },
+  "connector": {
+    "name": "Pembina Hubungan",
+    "headline": "Orang lain lebih mudah membantu kerana mereka mempercayai anda.",
+    "desc": "Hubungan baik merupakan kekuatan anda. Anda cenderung membina kepercayaan, menunjukkan penghargaan dan memastikan urusan bersama terasa adil. Oleh sebab banyak situasi kerja memerlukan kerjasama tanpa kuasa rasmi, hubungan yang dibina dengan ikhlas boleh menjadi sumber sokongan yang sangat berharga.",
+    "people": "mesra, mudah bekerjasama dan menghargai hubungan baik.",
+    "further": "Sokong hubungan baik itu dengan fakta yang jelas atau tujuan yang bermakna supaya orang lain bukan sahaja senang bekerjasama dengan anda, malah yakin terhadap cadangan anda."
+  },
+  "driver": {
+    "name": "Penggerak",
+    "headline": "Apabila sesuatu perlu diselesaikan, anda memastikan tindakan diambil.",
+    "desc": "Anda membawa kejelasan, struktur dan rasa tanggungjawab dalam pelaksanaan tugas. Anda tahu bila perlu merujuk kepada peraturan, menetapkan tarikh akhir dan mendapatkan sokongan yang diperlukan. Pendekatan ini boleh membantu ketika berdepan tekanan atau masa yang terhad kerana orang lain tahu perkara yang perlu dilakukan.",
+    "people": "tegas, boleh diharapkan dan jelas dalam menyampaikan harapan.",
+    "further": "Seimbangkan ketegasan dengan pendekatan Teras, seperti menjelaskan sebab sesuatu permintaan dibuat dan mendapatkan pandangan orang lain. Ini membantu membina komitmen, bukan sekadar pematuhan."
+  },
+  "engager": {
+    "name": "Pengaruh Berasaskan Hubungan",
+    "headline": "Anda menggabungkan hujah yang meyakinkan dengan hubungan yang baik.",
+    "desc": "Anda boleh menjelaskan sebab sesuatu cadangan itu munasabah sambil memastikan orang lain berasa dihormati dan dihargai. Gabungan hujah yang kukuh dan hubungan baik membantu mengubah kerjasama biasa menjadi sokongan yang lebih aktif.",
+    "people": "meyakinkan, mudah didekati dan boleh dipercayai.",
+    "further": "Jika pelaksanaan mula perlahan, tarikh akhir yang jelas atau rujukan yang sopan kepada persetujuan bersama boleh membantu memastikan kemajuan diteruskan."
+  },
+  "strategist": {
+    "name": "Ahli Strategi",
+    "headline": "Anda mengemukakan hujah yang kukuh dan memastikan ia disokong.",
+    "desc": "Anda cenderung membuat pertimbangan berdasarkan bukti, kemudian mengukuhkan cadangan melalui struktur, peraturan dan sokongan pihak yang berkaitan. Gabungan pemikiran yang tersusun dan ketegasan amat berguna apabila keputusan yang dibuat melibatkan banyak pihak atau mempunyai kesan yang besar.",
+    "people": "teliti, teratur dan berkeyakinan ketika membuat keputusan.",
+    "further": "Tambahkan penghargaan dan pendekatan yang lebih mesra supaya persetujuan yang dicapai turut disertai kepercayaan dan sokongan jangka panjang."
+  },
+  "dealmaker": {
+    "name": "Perunding",
+    "headline": "Anda tahu cara mencapai persetujuan dan menggerakkan tindakan.",
+    "desc": "Anda peka terhadap keperluan orang lain, bijak mencari persetujuan yang saling menguntungkan dan tahu pihak yang boleh membantu menjayakan sesuatu urusan. Anda juga cenderung membuat susulan untuk memastikan keputusan diterjemahkan kepada tindakan. Kemahiran praktikal ini amat berguna apabila perlu bekerjasama merentas pasukan.",
+    "people": "bijak mencari penyelesaian, mempunyai hubungan kerja yang luas dan berorientasikan hasil.",
+    "further": "Lebih kerap terangkan sebab di sebalik sesuatu cadangan, dengan sokongan bukti atau tujuan yang jelas. Ini boleh membantu menjadikan persetujuan jangka pendek sebagai komitmen yang berpanjangan."
+  },
+  "adapter": {
+    "name": "Fleksibel",
+    "headline": "Anda menggunakan pelbagai pendekatan mengikut orang dan keadaan.",
+    "desc": "Pendekatan yang paling kerap anda pilih merangkumi ketiga-tiga kumpulan. Ini menunjukkan kecenderungan untuk menggunakan kaedah yang berbeza mengikut keadaan, bukannya bergantung pada satu cara sahaja. Fleksibiliti ini berguna apabila bekerjasama dengan individu yang mempunyai keutamaan dan keperluan berbeza.",
+    "people": "fleksibel, peka terhadap keadaan dan bijak menyesuaikan diri.",
+    "further": "Langkah seterusnya ialah memilih pendekatan dengan lebih sedar. Fikirkan siapa yang ingin anda pengaruhi dan apa yang diperlukan sebelum menentukan cara terbaik untuk bertindak."
+  }
+};
+const STYLES = LANG === "ms" ? STYLES_MS : STYLES_EN;
+const LEVER_PHRASE_MS = {
+  "rational": [
+    "mengemukakan hujah yang disokong fakta",
+    "fakta dan hujah yang logik"
+  ],
+  "consultation": [
+    "melibatkan orang lain dalam penyediaan rancangan",
+    "mendapatkan pandangan lebih awal"
+  ],
+  "collaboration": [
+    "turut membantu melaksanakan tugas",
+    "memberikan bantuan secara langsung"
+  ],
+  "inspirational": [
+    "mengaitkan tugas dengan tujuan yang bermakna",
+    "tujuan dan matlamat bersama"
+  ],
+  "apprising": [
+    "menjelaskan manfaat kepada orang lain",
+    "manfaat kepada individu"
+  ],
+  "ingratiation": [
+    "membuat orang lain berasa dihargai",
+    "menunjukkan penghargaan secara terbuka"
+  ],
+  "personal": [
+    "mendapatkan sokongan melalui hubungan yang saling mempercayai",
+    "meminta bantuan berdasarkan kepercayaan"
+  ],
+  "exchange": [
+    "mencari persetujuan yang adil dan saling menguntungkan",
+    "menawarkan bantuan sebagai balasan"
+  ],
+  "pressure": [
+    "memastikan kemajuan melalui tarikh akhir yang jelas",
+    "tarikh akhir dan tindakan susulan"
+  ],
+  "legitimating": [
+    "mengaitkan permintaan dengan peraturan dan bidang kuasa yang sah",
+    "peraturan dan kuasa rasmi"
+  ],
+  "coalition": [
+    "mendapatkan sokongan pihak lain terhadap cadangan",
+    "membina sokongan daripada pihak lain"
+  ]
+};
 // [signature move, untapped edge]
-const LEVER_PHRASE = {
+const LEVER_PHRASE_EN = {
   rational: ["building a compelling, evidence-backed case", "evidence and logic"],
   consultation: ["inviting others to shape the plan", "inviting input early"],
   collaboration: ["rolling up your sleeves alongside people", "hands-on support"],
@@ -783,6 +939,7 @@ const LEVER_PHRASE = {
   legitimating: ["anchoring requests in clear rules and roles", "rules and formal authority"],
   coalition: ["rallying allies behind your ideas", "lining up allies"],
 };
+const LEVER_PHRASE = LANG === "ms" ? LEVER_PHRASE_MS : LEVER_PHRASE_EN;
 // Top set = every lever at the highest score, plus the second-highest score's levers
 // when only one lever is at the top. The families in the top set decide the style.
 function pickStyle(scored) {
@@ -798,30 +955,31 @@ function pickStyle(scored) {
   const key = c && so && h ? "adapter" : c && so ? "engager" : c && h ? "strategist" : so && h ? "dealmaker" : c ? "builder" : so ? "connector" : "driver";
   return { key: key, top: top };
 }
+function niceName(n) { return n.toLowerCase().replace(/\b[a-z]/g, function (c) { return c.toUpperCase(); }); }
 function joinAnd(items) {
   if (items.length <= 1) return items.slice();
   const out = [];
-  items.forEach(function (it, i) { if (i > 0) out.push(i === items.length - 1 ? " and " : ", "); out.push(it); });
+  items.forEach(function (it, i) { if (i > 0) out.push(i === items.length - 1 ? tx(" and ", " dan ") : ", "); out.push(it); });
   return out;
 }
 function StyleBox(props) {
   const st = STYLES[props.styleKey];
-  const move = function (s, idx) { return <span key={s.id}><b style={{ color: C.ink }}>{LEVER_PHRASE[s.id][idx]}</b> ({s.name})</span>; };
+  const move = function (s, idx) { return <span key={s.id}><b style={{ color: C.ink }}>{LEVER_PHRASE[s.id][idx]}</b> ({niceName(s.name)})</span>; };
   const label = { fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.18em", color: C.green, textTransform: "uppercase" };
   const para = { fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "6px 0 0" };
   return (
     <div style={{ marginTop: 22, background: C.tint, borderTop: "4px solid " + C.green, borderRadius: 10, padding: "24px 22px 24px" }}>
-      <Kicker>YOUR INFLUENCE STYLE</Kicker>
+      <Kicker>{tx("YOUR INFLUENCE STYLE", "GAYA ANDA MEMPENGARUHI ORANG LAIN")}</Kicker>
       <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 34, lineHeight: 1.05, color: C.ink, marginTop: 10 }}>{st.name}</div>
       <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 19, lineHeight: 1.3, color: C.green, marginTop: 8 }}>{st.headline}</div>
       <p style={{ fontFamily: BODY, fontSize: 15, color: C.ink, lineHeight: 1.6, margin: "12px 0 0" }}>{st.desc}</p>
       <div style={{ height: 1, background: C.frame, margin: "18px 0 16px" }} />
-      <div style={label}>Your signature moves</div>
+      <div style={label}>{tx("Your signature moves", "Pendekatan utama anda")}</div>
       <p style={para}>{joinAnd(props.top.map(function (s) { return move(s, 0); }))}.</p>
-      <div style={Object.assign({}, label, { marginTop: 14 })}>People experience you as</div>
+      <div style={Object.assign({}, label, { marginTop: 14 })}>{tx("People experience you as", "Cara orang lain mungkin melihat anda")}</div>
       <p style={para}>{st.people.charAt(0).toUpperCase() + st.people.slice(1)}</p>
-      <div style={Object.assign({}, label, { marginTop: 14 })}>Your untapped edge</div>
-      <p style={para}>{joinAnd(props.focus.map(function (s) { return move(s, 1); }))}, a great place to stretch next. {st.further}</p>
+      <div style={Object.assign({}, label, { marginTop: 14 })}>{tx("Your untapped edge", "Ruang untuk diperkembangkan")}</div>
+      <p style={para}>{joinAnd(props.focus.map(function (s) { return move(s, 1); }))}{tx(", a great place to stretch next. ", ", yang boleh anda cuba tingkatkan selepas ini. ")}{st.further}</p>
     </div>
   );
 }
@@ -857,11 +1015,18 @@ function Results(props) {
   const styleInfo = STYLES[style.key];
 
   const lines = [];
-  if (means.CORE >= 2.7 && means.CORE >= means.HARD && means.CORE >= means.SOFT) lines.push("You lean heavily on Core tactics — the mark of a sustainable influencer who earns commitment rather than compliance.");
-  if (means.HARD >= 2.5 && means.HARD > means.CORE) lines.push("You reach relatively hard for pressure levers. They may win the moment, but over time they breed resistance — especially with stakeholders you don’t manage.");
-  if (means.SOFT <= 1.3) lines.push("Soft tactics sit low in your profile, which can make your influence feel transactional; relationships are under-leveraged.");
-  if (means.CORE <= 1.3) lines.push("Core tactics sit low in your profile — your most effective, evidence-backed tools are being left on the table.");
-  if (lines.length === 0) lines.push("Your profile is fairly even across the three families. Sharpen your lowest Core tactic to turn a situational lever into a signature strength.");
+  if (LANG === "ms") {
+    if (means.CORE >= 2.7 && means.CORE >= means.HARD && means.CORE >= means.SOFT) lines.push("Anda lebih cenderung menggunakan pendekatan Teras, yang membantu mendapatkan komitmen dan bukan sekadar persetujuan tanpa penglibatan sebenar.");
+    if (means.HARD >= 2.5 && means.HARD > means.CORE) lines.push("Anda agak kerap menggunakan pendekatan Keras untuk memastikan tindakan diambil. Cara ini mungkin berkesan dalam jangka pendek, tetapi boleh menimbulkan penolakan jika digunakan terlalu kerap, terutama dengan pihak yang bukan di bawah seliaan anda.");
+    if (means.SOFT <= 1.3) lines.push("Pendekatan Lembut kurang kerap muncul dalam pilihan anda. Cuba beri lebih perhatian kepada hubungan dan kepercayaan supaya permintaan anda tidak terlalu tertumpu pada urusan tugas semata-mata.");
+    if (means.CORE <= 1.3) lines.push("Pendekatan Teras kurang kerap muncul dalam pilihan anda. Pertimbangkan untuk lebih kerap menggunakan hujah yang jelas, penglibatan orang lain dan sokongan praktikal bagi membina komitmen.");
+    if (lines.length === 0) lines.push("Pilihan anda agak seimbang antara ketiga-tiga kumpulan. Cuba tingkatkan salah satu pendekatan Teras yang kurang kerap dipilih supaya anda mempunyai lebih banyak pilihan apabila mempengaruhi orang lain.");
+  }
+  if (LANG === "en" && means.CORE >= 2.7 && means.CORE >= means.HARD && means.CORE >= means.SOFT) lines.push("You lean heavily on Core tactics — the mark of a sustainable influencer who earns commitment rather than compliance.");
+  if (LANG === "en" && means.HARD >= 2.5 && means.HARD > means.CORE) lines.push("You reach relatively hard for pressure levers. They may win the moment, but over time they breed resistance — especially with stakeholders you don’t manage.");
+  if (LANG === "en" && means.SOFT <= 1.3) lines.push("Soft tactics sit low in your profile, which can make your influence feel transactional; relationships are under-leveraged.");
+  if (LANG === "en" && means.CORE <= 1.3) lines.push("Core tactics sit low in your profile — your most effective, evidence-backed tools are being left on the table.");
+  if (LANG === "en" && lines.length === 0) lines.push("Your profile is fairly even across the three families. Sharpen your lowest Core tactic to turn a situational lever into a signature strength.");
 
   const cols = [1, 2, 3, 4];
   const maxMean = Math.max(means.CORE, means.SOFT, means.HARD);
@@ -877,9 +1042,9 @@ function Results(props) {
       consistencyLabel: titleCase(cRead.label),
       scores: scores,
       groupAvg: { CORE: Number(means.CORE.toFixed(2)), SOFT: Number(means.SOFT.toFixed(2)), HARD: Number(means.HARD.toFixed(2)) },
-      developmentTarget: focusList.map(function (f) { return f.name; }).join(", "),
-      strengths: signature.map(function (s) { return s.name; }),
-      blindSpots: blind.map(function (s) { return s.name; }),
+      developmentTarget: focusList.map(function (f) { return EN_NAME[f.id]; }).join(", "),
+      strengths: signature.map(function (s) { return EN_NAME[s.id]; }),
+      blindSpots: blind.map(function (s) { return EN_NAME[s.id]; }),
       answers: Object.assign({}, answers),
       session: SESSION,
     };
@@ -898,21 +1063,21 @@ function Results(props) {
   function buildSummary() {
     const line = function (s) { return "  " + (s.name + "                      ").slice(0, 22) + " " + s.score + "/" + MAX_SCORE + " · " + bandWord(s); };
     const grp = function (g) { return scored.filter(function (s) { return s.group === g; }).map(line); };
-    let out = ["MY INFLUENCE PROFILE — Influence Self-Audit (GIG)"];
-    if (name) out.push("Name: " + name);
-    if (sessionName) out.push("Session: " + sessionName);
-    out.push("Consistency: " + consistency.pct + "% (" + titleCase(cRead.label) + ")"); out.push("");
-    out.push("INFLUENCE STYLE: " + styleInfo.name.toUpperCase() + " — " + styleInfo.headline);
-    out.push("Signature moves: " + style.top.map(function (s) { return LEVER_PHRASE[s.id][0] + " (" + s.name + ")"; }).join("; "));
-    out.push("Untapped edge: " + focusList.map(function (s) { return LEVER_PHRASE[s.id][1] + " (" + s.name + ")"; }).join("; ")); out.push("");
-    out.push("CORE"); out = out.concat(grp("CORE"));
-    out.push("SOFT"); out = out.concat(grp("SOFT"));
-    out.push("HARD"); out = out.concat(grp("HARD")); out.push("");
-    out.push((focusList.length > 1 ? "Development focus areas: " : "Development focus: ") + focusList.map(function (f) { return f.name + " (" + f.score + "/" + MAX_SCORE + ")"; }).join(", "));
-    out.push((strengthList.length > 1 ? "Signature strengths: " : "Signature strength: ") + strengthList.map(function (f) { return f.name + " (" + f.score + "/" + MAX_SCORE + ")"; }).join(", "));
-    out.push("Most-used levers: " + signature.map(function (s) { return s.name; }).join(", "));
-    out.push("Less-used levers: " + blind.map(function (s) { return s.name; }).join(", ")); out.push("");
-    out.push("Score = head-to-heads won out of 4. Relative (ipsative) profile.");
+    let out = [tx("MY INFLUENCE PROFILE — Influence Self-Audit (GIG)", "PROFIL PENGARUH SAYA — Audit Kendiri Pengaruh (GIG)")];
+    if (name) out.push(tx("Name: ", "Nama: ") + name);
+    if (sessionName) out.push(tx("Session: ", "Sesi: ") + sessionName);
+    out.push(tx("Consistency: ", "Konsistensi: ") + consistency.pct + "% (" + titleCase(cRead.label) + ")"); out.push("");
+    out.push(tx("INFLUENCE STYLE: ", "GAYA PENGARUH: ") + styleInfo.name.toUpperCase() + " — " + styleInfo.headline);
+    out.push(tx("Signature moves: ", "Pendekatan utama: ") + style.top.map(function (s) { return LEVER_PHRASE[s.id][0] + " (" + niceName(s.name) + ")"; }).join("; "));
+    out.push(tx("Untapped edge: ", "Ruang penambahbaikan: ") + focusList.map(function (s) { return LEVER_PHRASE[s.id][1] + " (" + niceName(s.name) + ")"; }).join("; ")); out.push("");
+    out.push(tx("CORE", "TERAS")); out = out.concat(grp("CORE"));
+    out.push(tx("SOFT", "LEMBUT")); out = out.concat(grp("SOFT"));
+    out.push(tx("HARD", "KERAS")); out = out.concat(grp("HARD")); out.push("");
+    out.push(tx(focusList.length > 1 ? "Development focus areas: " : "Development focus: ", "Fokus pembangunan: ") + focusList.map(function (f) { return f.name + " (" + f.score + "/" + MAX_SCORE + ")"; }).join(", "));
+    out.push(tx(strengthList.length > 1 ? "Signature strengths: " : "Signature strength: ", "Kekuatan utama: ") + strengthList.map(function (f) { return f.name + " (" + f.score + "/" + MAX_SCORE + ")"; }).join(", "));
+    out.push(tx("Most-used levers: ", "Pendekatan yang paling kerap dipilih: ") + signature.map(function (s) { return s.name; }).join(", "));
+    out.push(tx("Less-used levers: ", "Pendekatan yang kurang kerap dipilih: ") + blind.map(function (s) { return s.name; }).join(", ")); out.push("");
+    out.push(tx("Score = head-to-heads won out of 4. Relative (ipsative) profile.", "Skor menunjukkan bilangan kali sesuatu pendekatan dipilih daripada empat perbandingan. Ini ialah profil relatif (ipsatif)."));
     return out.join("\n");
   }
   async function copyResults() {
@@ -938,7 +1103,7 @@ function Results(props) {
       const w = canvas.width / 1.5, h = canvas.height / 1.5;
       const pdf = new jsPDF({ orientation: w > h ? "l" : "p", unit: "px", format: [w, h], compress: true });
       pdf.addImage(img, "JPEG", 0, 0, w, h, undefined, "FAST");
-      const fn = (name ? name.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "") + "_" : "") + "influence-profile.pdf";
+      const fn = (name ? name.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "") + "_" : "") + tx("influence-profile.pdf", "profil-pengaruh.pdf");
       pdf.save(fn);
       setPdfState("done"); setTimeout(function () { setPdfState("idle"); }, 2500);
     } catch (e) { setPdfState("error"); setTimeout(function () { setPdfState("idle"); }, 3000); }
@@ -948,47 +1113,48 @@ function Results(props) {
     const t = setTimeout(downloadPDF, 800);
     return function () { clearTimeout(t); };
   }, []);
-  const pdfLabel = pdfState === "working" ? "PREPARING PDF…" : pdfState === "done" ? "✓ PDF SAVED" : pdfState === "error" ? "PDF FAILED — TRY AGAIN" : "⤓ DOWNLOAD PDF";
+  const pdfLabel = pdfState === "working" ? tx("PREPARING PDF…", "SEDANG MENYEDIAKAN PDF…") : pdfState === "done" ? tx("✓ PDF SAVED", "✓ PDF TELAH DISIMPAN") : pdfState === "error" ? tx("PDF FAILED — TRY AGAIN", "PDF TIDAK BERJAYA — CUBA LAGI") : tx("⤓ DOWNLOAD PDF", "⤓ MUAT TURUN PDF");
 
   return (
     <div style={{ maxWidth: 640, margin: "0 auto" }}>
       {props.facilitator && (
         <div style={{ margin: "20px 28px 0", padding: "12px 16px", background: C.tint, border: "1px solid " + C.green, fontFamily: BODY, fontSize: 13, color: C.ink, lineHeight: 1.5 }}>
-          <b>Facilitator copy.</b> This report was rebuilt from the saved answers. It has not been submitted again.
+          <b>{tx("Facilitator copy.", "Salinan untuk fasilitator.")}</b> {tx("This report was rebuilt from the saved answers. It has not been submitted again.", "Laporan ini dijana semula berdasarkan jawapan yang telah disimpan dan tidak dihantar untuk kali kedua.")}
         </div>
       )}
       {/* ----- captured report ----- */}
       <div ref={reportRef} style={{ padding: "44px 28px 34px", background: C.white }}>
-        <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.32em", color: C.grey }}>YOUR RESULT{name ? " · " + name.toUpperCase() : ""}</div>
+        <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.32em", color: C.grey }}>{tx("YOUR RESULT", "KEPUTUSAN PENILAIAN ANDA")}{name ? " · " + name.toUpperCase() : ""}</div>
         {(props.takenAt || sessionName) && (
           <div style={{ fontFamily: BODY, fontSize: 12, color: C.grey, marginTop: 6 }}>
-            {[sessionName ? "Session " + sessionName : "", props.takenAt ? "Taken " + props.takenAt : ""].filter(Boolean).join(" · ")}
+            {[sessionName ? tx("Session ", "Sesi ") + sessionName : "", props.takenAt ? tx("Taken ", "Dijawab pada ") + props.takenAt : ""].filter(Boolean).join(" · ")}
           </div>
         )}
-        <h1 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 44, lineHeight: 1.0, color: C.ink, margin: "18px 0 0" }}>
-          Your Influence<br /><span style={{ color: C.green }}>Profile</span>
+        <h1 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: LANG === "ms" ? "clamp(30px, 9vw, 44px)" : 44, lineHeight: 1.0, color: C.ink, margin: "18px 0 0", overflowWrap: "break-word" }}>
+          {tx("Your Influence", "Profil Gaya")}<br /><span style={{ color: C.green }}>{tx("Profile", "Mempengaruhi Anda")}</span>
         </h1>
         <StyleBox styleKey={style.key} top={style.top} focus={focusList} />
         <p style={{ fontFamily: BODY, fontSize: 15, color: C.muted, lineHeight: 1.55, margin: "16px 0 0", maxWidth: 520 }}>
-          Each lever’s score is how many of its four head-to-heads it won (0–4). <b>2 is the balance
-          point.</b> Bands: <b>Underused</b> (0–1), <b>Situational</b> (2), <b>Signature</b> (3–4).
+          {LANG === "ms"
+            ? <span>Setiap pendekatan dibandingkan sebanyak empat kali. Skor 0 hingga 4 menunjukkan berapa kali pendekatan itu dipilih. <b>Skor 2 ialah titik tengah.</b> Kategori skor: <b>Jarang Dipilih</b> (0–1), <b>Mengikut Keadaan</b> (2) dan <b>Kecenderungan Utama</b> (3–4).</span>
+            : <span>Each lever’s score is how many of its four head-to-heads it won (0–4). <b>2 is the balance point.</b> Bands: <b>Underused</b> (0–1), <b>Situational</b> (2), <b>Signature</b> (3–4).</span>}
         </p>
         <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.55, margin: "12px 0 0", maxWidth: 560, paddingLeft: 12, borderLeft: "2px solid " + C.green }}>
-          <b style={{ color: C.ink }}>Reading your results.</b> Your 22 choices share out a fixed 22 points across 11 levers, so a low score is relative to your other choices. The audit describes the preferences you showed in this exercise; it does not measure your actual influence skill or effectiveness. Check what you read against real examples before drawing conclusions.
+          <b style={{ color: C.ink }}>{tx("Reading your results.", "Cara memahami keputusan anda.")}</b> {tx("Your 22 choices share out a fixed 22 points across 11 levers, so a low score is relative to your other choices. The audit describes the preferences you showed in this exercise; it does not measure your actual influence skill or effectiveness. Check what you read against real examples before drawing conclusions.", "Sebanyak 22 mata diagihkan kepada 11 pendekatan berdasarkan pilihan anda. Oleh itu, skor rendah hanya bermakna pendekatan itu kurang kerap dipilih berbanding pendekatan lain. Penilaian ini menunjukkan kecenderungan anda semasa menjawab, bukan ukuran sebenar kemahiran atau keberkesanan anda. Pertimbangkan juga pengalaman sebenar sebelum membuat kesimpulan.")}
         </p>
 
         {saveState !== "off" && (
           <div style={{ marginTop: 16, fontFamily: BODY, fontSize: 12.5, color: saveState === "error" ? "#B23B3B" : C.muted }}>
-            {saveState === "saving" && "Saving your results…"}
-            {saveState === "saved" && "✓ Results submitted."}
-            {saveState === "error" && "Couldn’t submit automatically — use Copy or PDF below."}
+            {saveState === "saving" && tx("Saving your results…", "Menyimpan keputusan anda…")}
+            {saveState === "saved" && tx("✓ Results submitted.", "✓ Keputusan telah dihantar.")}
+            {saveState === "error" && tx("Couldn’t submit automatically — use Copy or PDF below.", "Keputusan tidak dapat dihantar secara automatik. Sila salin keputusan atau muat turun PDF di bawah.")}
           </div>
         )}
 
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 20, padding: "16px 18px", border: "1px solid " + C.hairline }}>
           <div style={{ flexShrink: 0, textAlign: "center" }}>
             <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 30, color: consistency.pct >= 75 ? C.green : C.ink }}>{consistency.pct}%</div>
-            <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 9.5, letterSpacing: "0.18em", color: C.grey }}>CONSISTENCY</div>
+            <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 9.5, letterSpacing: "0.18em", color: C.grey }}>{tx("CONSISTENCY", "KETEKALAN JAWAPAN")}</div>
           </div>
           <div style={{ width: 1, alignSelf: "stretch", background: C.hairline }} />
           <div>
@@ -998,9 +1164,9 @@ function Results(props) {
         </div>
 
         <div style={{ marginTop: 34 }}>
-          <Kicker>YOUR INFLUENCE WEB</Kicker>
+          <Kicker>{tx("YOUR INFLUENCE WEB", "CARTA GAYA MEMPENGARUHI ANDA")}</Kicker>
           <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.5, margin: "10px 0 0" }}>
-            Each spoke is one lever, scored 0–4. The green dashed ring marks 2, the balance point: points outside it are levers you favour, points inside it are ones you use less. The shape shows your mix of habits, not how skilled you are.
+            {tx("Each spoke is one lever, scored 0–4. The green dashed ring marks 2, the balance point: points outside it are levers you favour, points inside it are ones you use less. The shape shows your mix of habits, not how skilled you are.", "Setiap jejari mewakili satu pendekatan dengan skor 0 hingga 4. Garisan hijau putus-putus menandakan skor 2, iaitu titik tengah. Titik di luar garisan menunjukkan pendekatan yang lebih kerap dipilih, manakala titik di dalamnya menunjukkan pendekatan yang kurang kerap dipilih. Carta ini menggambarkan corak pilihan anda, bukan tahap kemahiran anda.")}
           </p>
           <Radar scored={scored} isFocus={isFocus} />
           <RadarLegend />
@@ -1011,10 +1177,12 @@ function Results(props) {
 
         {/* ---- TOP STRENGTH ---- */}
         <div style={{ border: "1px solid " + C.ink, borderRadius: 10, padding: "22px 22px 24px" }}>
-          <Kicker>{(strengthFallback ? "YOUR TOP STRENGTH" : "YOUR SIGNATURE STRENGTH") + (strengthList.length > 1 ? "S" : "")}</Kicker>
+          <Kicker>{LANG === "ms" ? (strengthFallback ? "PENDEKATAN DENGAN SKOR TERTINGGI" : "KECENDERUNGAN UTAMA ANDA") : (strengthFallback ? "YOUR TOP STRENGTH" : "YOUR SIGNATURE STRENGTH") + (strengthList.length > 1 ? "S" : "")}</Kicker>
           <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.5, margin: "8px 0 0" }}>
-            These are the approaches you tended to choose more often in this audit. They are resources you can use with intention, not fixed labels or proof of how skilled you are. Notice where they work well and when another approach might help.
-            {strengthFallback
+            {tx("These are the approaches you tended to choose more often in this audit. They are resources you can use with intention, not fixed labels or proof of how skilled you are. Notice where they work well and when another approach might help.", "Ini ialah pendekatan yang lebih kerap anda pilih dalam penilaian ini. Anggaplah ia sebagai kekuatan yang boleh digunakan dengan lebih sedar, bukannya label tetap atau bukti keupayaan anda. Perhatikan keadaan yang sesuai untuk pendekatan tersebut dan bila cara lain mungkin lebih berkesan.")}
+            {LANG === "ms"
+              ? (strengthFallback ? " Tiada pendekatan mencapai skor 3 atau 4. Oleh itu, pendekatan dengan skor tertinggi dipaparkan di sini." : " Semua pendekatan yang mendapat skor 3 atau 4 dipaparkan di sini, bermula dengan skor tertinggi.")
+              : strengthFallback
               ? " None of your levers reached the Signature band (3–4), so your highest-scoring " + (strengthList.length > 1 ? "levers are" : "lever is") + " shown here."
               : " Every lever in your Signature band (3–4) is shown here, highest first."}
           </p>
@@ -1027,10 +1195,10 @@ function Results(props) {
                   <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.1em", color: C.green, flexShrink: 0 }}>{s.score}/{MAX_SCORE}</div>
                 </div>
                 <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>{d[0]}</p>
-                <CoachLine label="Your coaching review" text={COACH_STRENGTH[s.id][0]} />
-                <CoachLine label="A useful stretch" text={COACH_STRENGTH[s.id][1]} />
-                <CoachLine label="Try this" text={COACH_STRENGTH[s.id][2]} />
-                <CoachLine label="Reflect" text={COACH_STRENGTH[s.id][3]} italic />
+                <CoachLine label={tx("Your coaching review", "Ulasan untuk perkembangan anda")} text={COACH_STRENGTH[s.id][0]} />
+                <CoachLine label={tx("A useful stretch", "Perkara yang boleh dipertingkatkan")} text={COACH_STRENGTH[s.id][1]} />
+                <CoachLine label={tx("Try this", "Apa yang boleh dicuba")} text={COACH_STRENGTH[s.id][2]} />
+                <CoachLine label={tx("Reflect", "Untuk direnungkan")} text={COACH_STRENGTH[s.id][3]} italic />
               </div>
             );
           })}
@@ -1038,50 +1206,54 @@ function Results(props) {
 
         {/* ---- DEVELOPMENT TARGET ---- */}
         <div style={{ background: C.tint, border: "1px solid " + C.green, borderRadius: 10, padding: "22px 22px 24px", marginTop: 22 }}>
-          <Kicker>{focusList.length > 1 ? "YOUR DEVELOPMENT FOCUS AREAS" : "YOUR DEVELOPMENT FOCUS"}</Kicker>
+          <Kicker>{tx(focusList.length > 1 ? "YOUR DEVELOPMENT FOCUS AREAS" : "YOUR DEVELOPMENT FOCUS", "FOKUS PEMBANGUNAN ANDA")}</Kicker>
           <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.5, margin: "8px 0 0" }}>
-            {focusList.length > 1
+            {LANG === "ms"
+              ? (focusList.length > 1
+                ? "Ini ialah pendekatan yang kurang kerap anda pilih dalam penilaian ini. Skor rendah bukan bermakna anda lemah. Anggaplah pendekatan ini sebagai peluang untuk mencuba cara lain apabila berurusan dengan orang dan situasi yang berbeza."
+                : "Ini ialah pendekatan yang kurang kerap anda pilih dalam penilaian ini. Skor rendah bukan bermakna anda lemah. Anggaplah pendekatan ini sebagai peluang untuk mencuba cara lain apabila berurusan dengan orang dan situasi yang berbeza.")
+              : focusList.length > 1
               ? "These are influence approaches you selected less often in the scenarios. They are not failings or deficits. Think of them as useful experiments to expand your options when influencing different people and situations."
               : "This is an influence approach you selected less often in the scenarios. It is not a failing or a deficit. Think of it as a useful experiment to expand your options when influencing different people and situations."}
-            {focusList.length > 1 ? " These levers tied for your lowest score." : ""}
+            {focusList.length > 1 ? tx(" These levers tied for your lowest score.", " Semua pendekatan ini mendapat skor terendah yang sama.") : ""}
           </p>
           {focusList.map(function (f, i) {
             return (
               <div key={f.id} style={{ marginTop: 18, paddingTop: i === 0 ? 0 : 18, borderTop: i === 0 ? "none" : "1px solid " + C.frame }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
                   <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 24, color: C.ink }}>{f.name}</div>
-                  <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.1em", color: C.muted, flexShrink: 0 }}>{f.group} · {f.score}/{MAX_SCORE}</div>
+                  <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.1em", color: C.muted, flexShrink: 0 }}>{FAMILY_NAME[f.group].toUpperCase()} · {f.score}/{MAX_SCORE}</div>
                 </div>
                 <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>{GROWTH[f.id].what}</p>
-                <CoachLine label="Your coaching review" text={COACH_FOCUS[f.id][0]} />
-                <CoachLine label="Try this small experiment" text={COACH_FOCUS[f.id][1]} />
-                <CoachLine label="Reflect" text={COACH_FOCUS[f.id][2]} italic />
+                <CoachLine label={tx("Your coaching review", "Ulasan untuk perkembangan anda")} text={COACH_FOCUS[f.id][0]} />
+                <CoachLine label={tx("Try this small experiment", "Cuba langkah kecil ini")} text={COACH_FOCUS[f.id][1]} />
+                <CoachLine label={tx("Reflect", "Untuk direnungkan")} text={COACH_FOCUS[f.id][2]} italic />
               </div>
             );
           })}
           <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.muted, lineHeight: 1.5, margin: "16px 0 0" }}>
             {(focusAllCore
-              ? "Core tactics build lasting commitment, not just compliance. "
-              : "Soft and Hard levers work best alongside the Core tactics, used thoughtfully and in proportion. ")
-              + (focusList.length > 1 ? "Pick one of these as a useful place to experiment next." : "This is one useful place to experiment next.")}
+              ? tx("Core tactics build lasting commitment, not just compliance. ", "Pendekatan Teras membantu membina komitmen jangka panjang, bukan sekadar mendapatkan persetujuan. ")
+              : tx("Soft and Hard levers work best alongside the Core tactics, used thoughtfully and in proportion. ", "Pendekatan Lembut dan Keras lebih sesuai digunakan bersama pendekatan Teras, dengan pertimbangan yang teliti. "))
+              + (focusList.length > 1 ? tx("Pick one of these as a useful place to experiment next.", "Pilih satu pendekatan untuk dicuba dalam situasi kerja anda yang seterusnya.") : tx("This is one useful place to experiment next.", "Cuba gunakan pendekatan ini dalam situasi kerja anda yang seterusnya."))}
           </p>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22, marginTop: 32 }}>
           <div>
-            <Kicker>MOST-USED LEVERS</Kicker>
-            <p style={{ fontFamily: BODY, fontSize: 12, color: C.muted, margin: "8px 0 12px", lineHeight: 1.4 }}>Approaches you chose most often in this audit.</p>
+            <Kicker>{tx("MOST-USED LEVERS", "PENDEKATAN PALING KERAP DIPILIH")}</Kicker>
+            <p style={{ fontFamily: BODY, fontSize: 12, color: C.muted, margin: "8px 0 12px", lineHeight: 1.4 }}>{tx("Approaches you chose most often in this audit.", "Pendekatan yang paling kerap anda pilih dalam penilaian ini.")}</p>
             {signature.map(function (s) { return <ListRow key={s.id} name={s.name} score={s.score} />; })}
           </div>
           <div>
-            <Kicker>LESS-USED LEVERS</Kicker>
-            <p style={{ fontFamily: BODY, fontSize: 12, color: C.muted, margin: "8px 0 12px", lineHeight: 1.4 }}>Approaches you chose less often in this audit.</p>
+            <Kicker>{tx("LESS-USED LEVERS", "PENDEKATAN KURANG KERAP DIPILIH")}</Kicker>
+            <p style={{ fontFamily: BODY, fontSize: 12, color: C.muted, margin: "8px 0 12px", lineHeight: 1.4 }}>{tx("Approaches you chose less often in this audit.", "Pendekatan yang kurang kerap anda pilih dalam penilaian ini.")}</p>
             {blind.map(function (s) { return <ListRow key={s.id} name={s.name} score={s.score} />; })}
           </div>
         </div>
 
         <Rule style={{ margin: "34px 0 26px" }} />
-        <Kicker>READ YOUR PROFILE</Kicker>
+        <Kicker>{tx("READ YOUR PROFILE", "MEMAHAMI PROFIL ANDA")}</Kicker>
         <div style={{ marginTop: 14 }}>
           {lines.map(function (l, i) {
             return (
@@ -1097,18 +1269,18 @@ function Results(props) {
           {["CORE", "SOFT", "HARD"].map(function (g, i) {
             return (
               <div key={g} style={{ padding: "16px 8px", textAlign: "center", borderLeft: i === 0 ? "none" : "1px solid " + C.hairline }}>
-                <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.2em", color: C.grey }}>{g}</div>
+                <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.2em", color: C.grey }}>{FAMILY_NAME[g].toUpperCase()}</div>
                 <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 26, color: means[g] === maxMean ? C.green : C.ink, marginTop: 4 }}>{means[g].toFixed(1)}</div>
-                <div style={{ fontFamily: BODY, fontSize: 10.5, color: C.muted, marginTop: 2 }}>avg / {MAX_SCORE}</div>
+                <div style={{ fontFamily: BODY, fontSize: 10.5, color: C.muted, marginTop: 2 }}>{tx("avg", "purata")} / {MAX_SCORE}</div>
               </div>
             );
           })}
         </div>
 
         <div style={{ background: C.white, border: "1px solid " + C.hairline, borderRadius: 8, padding: "18px 20px", marginTop: 30 }}>
-          <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.18em", color: C.ink }}>INFLUENCE, NOT MANIPULATION</div>
+          <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.18em", color: C.ink }}>{tx("INFLUENCE, NOT MANIPULATION", "MEMPENGARUHI, BUKAN MEMANIPULASI")}</div>
           <p style={{ fontFamily: BODY, fontSize: 13, color: C.muted, lineHeight: 1.55, margin: "10px 0 0" }}>
-            These tactics are tools, not tricks. Use them only where your claim is true and the interest is genuinely shared — the aim is commitment freely given. Reserve Hard tactics for when they are legitimately warranted. This is a relative profile; best read alongside candid peer feedback.
+            {tx("These tactics are tools, not tricks. Use them only where your claim is true and the interest is genuinely shared — the aim is commitment freely given. Reserve Hard tactics for when they are legitimately warranted. This is a relative profile; best read alongside candid peer feedback.", "Taktik ini ialah cara untuk mendapatkan kerjasama, bukan helah memperdaya orang lain. Gunakannya secara jujur, dengan mengambil kira kepentingan semua pihak. Matlamatnya ialah komitmen yang diberikan secara sukarela. Gunakan pendekatan Keras hanya apabila benar-benar wajar. Baca profil ini bersama maklum balas yang jujur daripada rakan sekerja.")}
           </p>
         </div>
       </div>
@@ -1116,8 +1288,8 @@ function Results(props) {
       {/* ----- actions (not captured) ----- */}
       <div style={{ padding: "6px 28px 72px" }}>
         <button onClick={downloadPDF} style={Object.assign({}, btnPrimary, { marginTop: 22 })} onMouseDown={function (e) { e.preventDefault(); }}>{pdfLabel}</button>
-        <button onClick={copyResults} style={Object.assign({}, btnGhost, { marginTop: 12 })} onMouseDown={function (e) { e.preventDefault(); }}>{copied ? "✓ COPIED TO CLIPBOARD" : "⧉ COPY MY RESULTS"}</button>
-        {!props.facilitator && <button onClick={props.onRestart} style={Object.assign({}, btnGhost, { marginTop: 12 })} onMouseDown={function (e) { e.preventDefault(); }}>↻ RETAKE THE AUDIT</button>}
+        <button onClick={copyResults} style={Object.assign({}, btnGhost, { marginTop: 12 })} onMouseDown={function (e) { e.preventDefault(); }}>{copied ? tx("✓ COPIED TO CLIPBOARD", "✓ BERJAYA DISALIN") : tx("⧉ COPY MY RESULTS", "⧉ SALIN KEPUTUSAN SAYA")}</button>
+        {!props.facilitator && <button onClick={props.onRestart} style={Object.assign({}, btnGhost, { marginTop: 12 })} onMouseDown={function (e) { e.preventDefault(); }}>{tx("↻ RETAKE THE AUDIT", "↻ JAWAB PENILAIAN SEKALI LAGI")}</button>}
       </div>
     </div>
   );
@@ -1125,8 +1297,11 @@ function Results(props) {
 
 /* ---------- spiderweb ---------- */
 const FAMILY_FILL = { CORE: "#E2F1E5", SOFT: "#F4EDDD", HARD: "#E6EAF0" };
-const FAMILY_NAME = { CORE: "Core", SOFT: "Soft", HARD: "Hard" };
-const SHORT = { rational: "Rational", consultation: "Consultation", collaboration: "Collaboration", inspirational: "Inspirational",
+const FAMILY_NAME = LANG === "ms" ? { CORE: "Teras", SOFT: "Lembut", HARD: "Keras" } : { CORE: "Core", SOFT: "Soft", HARD: "Hard" };
+const SHORT_MS = { rational: "Fakta", consultation: "Rundingan", collaboration: "Kerjasama", inspirational: "Semangat",
+  apprising: "Manfaat", ingratiation: "Hubungan Baik", personal: "Peribadi", exchange: "Timbal Balas",
+  pressure: "Desakan", legitimating: "Autoriti", coalition: "Sokongan" };
+const SHORT = LANG === "ms" ? SHORT_MS : { rational: "Rational", consultation: "Consultation", collaboration: "Collaboration", inspirational: "Inspirational",
   apprising: "Apprising", ingratiation: "Ingratiation", personal: "Personal", exchange: "Exchange",
   pressure: "Pressure", legitimating: "Legitimating", coalition: "Coalition" };
 
@@ -1146,7 +1321,7 @@ function Radar(props) {
   });
   return (
     <svg viewBox={"0 0 " + W + " " + H} width="100%" style={{ display: "block", margin: "18px auto 0", maxWidth: 640 }} role="img"
-      aria-label={"Influence web: " + L.map(function (s) { return s.name + " " + s.score; }).join(", ")}>
+      aria-label={tx("Influence web: ", "Carta gaya mempengaruhi: ") + L.map(function (s) { return s.name + " " + s.score; }).join(", ")}>
       {wedges}
       {[0, 1, 3, 4].map(function (v) { return <polygon key={v} points={ring(v)} fill="none" stroke="#FFFFFF" strokeWidth="1.5" />; })}
       {L.map(function (_, i) { const a = pt(i, 0), b = pt(i, MAX_SCORE); return <line key={i} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke="#FFFFFF" strokeWidth="1.5" />; })}
@@ -1163,7 +1338,7 @@ function Radar(props) {
         return (
           <g key={s.id}>
             <text x={x} y={y + dy} textAnchor={anchor} fontSize="15" fontWeight="700" fontFamily={HEAD} letterSpacing="0.3" fill={f ? C.green : C.ink}>{SHORT[s.id].toUpperCase()}</text>
-            <text x={x} y={y + dy + 16} textAnchor={anchor} fontSize="12.5" fontFamily={BODY} fill={f ? C.green : C.grey}>{s.score + "/" + MAX_SCORE + (f ? " · FOCUS" : "")}</text>
+            <text x={x} y={y + dy + 16} textAnchor={anchor} fontSize="12.5" fontFamily={BODY} fill={f ? C.green : C.grey}>{s.score + "/" + MAX_SCORE + (f ? tx(" · FOCUS", " · FOKUS") : "")}</text>
           </g>
         );
       })}
@@ -1181,9 +1356,9 @@ function RadarLegend() {
   };
   return (
     <div style={{ fontFamily: BODY, fontSize: 12, color: C.muted, textAlign: "center", marginTop: 6, lineHeight: 2 }}>
-      {item(FAMILY_FILL.CORE, "Core")}{item(FAMILY_FILL.SOFT, "Soft")}{item(FAMILY_FILL.HARD, "Hard")}
+      {item(FAMILY_FILL.CORE, FAMILY_NAME.CORE)}{item(FAMILY_FILL.SOFT, FAMILY_NAME.SOFT)}{item(FAMILY_FILL.HARD, FAMILY_NAME.HARD)}
       <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-        <span style={{ width: 18, height: 0, borderTop: "2px dashed " + C.green, display: "inline-block" }} />Balance point (2)
+        <span style={{ width: 18, height: 0, borderTop: "2px dashed " + C.green, display: "inline-block" }} />{tx("Balance point (2)", "Titik tengah (2)")}
       </span>
     </div>
   );
@@ -1197,7 +1372,7 @@ function ScoreList(props) {
           <div key={g}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 6, borderBottom: "2px solid " + C.ink }}>
               <span style={{ width: 12, height: 12, background: FAMILY_FILL[g], border: "1px solid " + C.hairline }} />
-              <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.2em", color: C.ink }}>{g}</span>
+              <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.2em", color: C.ink }}>{FAMILY_NAME[g].toUpperCase()}</span>
             </div>
             {props.scored.filter(function (s) { return s.group === g; }).map(function (s) {
               const f = props.isFocus(s.id);
@@ -1205,7 +1380,7 @@ function ScoreList(props) {
               return (
                 <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8, padding: "7px 0", borderBottom: "1px solid " + C.hairline }}>
                   <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, color: f ? C.green : C.ink }}>{s.name}</span>
-                  <span style={{ fontFamily: BODY, fontSize: 12, color: f ? C.green : bandColor, whiteSpace: "nowrap" }}><b>{s.score}</b> · {f ? "Focus" : s.band.label.charAt(0) + s.band.label.slice(1).toLowerCase()}</span>
+                  <span style={{ fontFamily: BODY, fontSize: 12, color: f ? C.green : bandColor, whiteSpace: "nowrap" }}><b>{s.score}</b> · {f ? tx("Focus", "Fokus") : s.band.label.charAt(0) + s.band.label.slice(1).toLowerCase()}</span>
                 </div>
               );
             })}
@@ -1232,7 +1407,7 @@ function ProfileBar(props) {
     <div style={{ marginBottom: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
         <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13.5, letterSpacing: "0.04em", color: C.ink }}>
-          {tactic.name}{highlight && <span style={{ color: C.green, marginLeft: 8, fontSize: 11, letterSpacing: "0.12em" }}>◄ FOCUS</span>}
+          {tactic.name}{highlight && <span style={{ color: C.green, marginLeft: 8, fontSize: 11, letterSpacing: "0.12em" }}>{tx("◄ FOCUS", "◄ FOKUS")}</span>}
         </span>
         <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 12, letterSpacing: "0.1em", color: bandColor }}>{tactic.score} · {tactic.band.label}</span>
       </div>
@@ -1273,6 +1448,7 @@ function App() {
   if (REPORT_LINK) {
     return (
       <div style={{ minHeight: "100vh", background: C.white, color: C.ink, fontFamily: BODY }}>
+        {!REPORT_LINK.download && <LangToggle />}
         <Results answers={REPORT_LINK.answers} name={REPORT_LINK.name} facilitator={true}
           sessionName={REPORT_LINK.session} takenAt={REPORT_LINK.takenAt} autoDownload={REPORT_LINK.download} />
       </div>
@@ -1287,6 +1463,7 @@ function App() {
   const [session, setSession] = useState(buildSession);
   return (
     <div style={{ minHeight: "100vh", background: C.white, color: C.ink, fontFamily: BODY }}>
+      {(screen === "landing" || screen === "intro") && <LangToggle />}
       {screen === "landing" && <Landing onBegin={function () { setScreen("intro"); }} />}
       {screen === "intro" && <Intro name={name} setName={setName} email={email} setEmail={setEmail} onBack={function () { setScreen("landing"); }} onBegin={function () { setPage(0); setAnswers({}); setSession(buildSession()); setScreen("audit"); }} />}
       {screen === "audit" && <Audit session={session} answers={answers} setAnswers={setAnswers} page={page} setPage={setPage} onFinish={function () { setScreen("results"); }} />}
