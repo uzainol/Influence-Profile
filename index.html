@@ -738,6 +738,94 @@ function Audit(props) {
 }
 
 /* ============================================================ RESULTS */
+/* ---- Influence style: overall profile at the top of the report ---- */
+const STYLES = {
+  builder: { name: "The Builder", headline: "You win hearts and minds, and they stay won.",
+    desc: "You are a natural commitment-builder. You lead with sound reasons, bring people into the thinking and connect the work to something bigger than the task. This is the style most closely linked to genuine buy-in, the kind of influence that keeps working long after the meeting ends. When you ask, people don’t just agree. They own it.",
+    people: "credible, inclusive and genuinely worth following.",
+    further: "Add a touch of warmth or a firmer nudge when time is short, and there will be very few doors you can’t open." },
+  connector: { name: "The Connector", headline: "People say yes to you because they want to.",
+    desc: "Relationships are your superpower. You build goodwill, honour trust and make every arrangement feel fair, so people go out of their way to help you. In a world where most influence happens without authority, a network of people who genuinely want you to succeed is one of the rarest assets anyone can have, and you have built it.",
+    people: "warm, generous and a pleasure to work with.",
+    further: "Pair your relationships with a crisp case or a compelling purpose, and your influence will grow from people who like you to people who champion your ideas." },
+  driver: { name: "The Driver", headline: "When something has to happen, you make it happen.",
+    desc: "You bring clarity, structure and momentum. You know the rules, you set the pace and you can marshal support exactly when it counts, so things get done on your watch. In a crisis or against an impossible deadline, yours is often the steadiest hand in the room, and people are glad of it.",
+    people: "decisive, dependable and refreshingly clear.",
+    further: "Blend your drive with more of the Core moves, like explaining the why or inviting input, and people will match your pace because they want to, not just because they have to." },
+  engager: { name: "The Engager", headline: "Head and heart: you bring both.",
+    desc: "You combine a compelling case with genuine connection. You can show people why something makes sense and make them feel valued while you do it, a rare pairing that turns colleagues into allies and allies into advocates. Few people manage to be this persuasive and this likeable at the same time.",
+    people: "convincing, approachable and deeply trustworthy.",
+    further: "When momentum stalls, a clear deadline or a respectful reference to the agreed standard can give all that goodwill its finishing push." },
+  strategist: { name: "The Strategist", headline: "You build the case, then you lock it in.",
+    desc: "You think like an architect of influence. You make a strong, reasoned case, then secure it with structure, authority and the right backing, so good decisions don’t just get made, they stick. That blend of brains and backbone is especially powerful in complex, high-stakes environments where getting it right really matters.",
+    people: "sharp, organised and quietly authoritative.",
+    further: "Add a little more warmth and appreciation, and you’ll win not just agreement but real loyalty." },
+  dealmaker: { name: "The Dealmaker", headline: "You know how to get a deal over the line.",
+    desc: "You read the room and work the network like a pro. You can craft a fair trade, rally exactly the right people and follow through firmly, so you get results where others get stuck. That practical, get-it-done savvy is gold in any organisation, and the people around you know they can count on you to land it.",
+    people: "resourceful, brilliantly connected and results-driven.",
+    further: "Lead more often with the why, through evidence or a bigger purpose, and your deals will grow into lasting commitment." },
+  adapter: { name: "The Adapter", headline: "You have the full toolkit, and you know how to use it.",
+    desc: "Your strongest moves span all three families, which gives you remarkable range. Rather than leaning on one favourite approach, you can shift gears to fit the person and the moment, one of the most valuable influence skills there is. Whoever is across the table, you have a way in.",
+    people: "versatile, perceptive and impressively resourceful.",
+    further: "Now make it deliberate. Choosing your move on purpose for each situation is what turns versatility into mastery." },
+};
+// [signature move, untapped edge]
+const LEVER_PHRASE = {
+  rational: ["building a compelling, evidence-backed case", "evidence and logic"],
+  consultation: ["inviting others to shape the plan", "inviting input early"],
+  collaboration: ["rolling up your sleeves alongside people", "hands-on support"],
+  inspirational: ["lighting people up with a bigger purpose", "purpose and vision"],
+  apprising: ["showing people exactly what’s in it for them", "personal benefits"],
+  ingratiation: ["making people feel genuinely valued", "open appreciation"],
+  personal: ["drawing on deep trust and relationships", "trust-based asks"],
+  exchange: ["crafting fair, win-win trades", "trading favours"],
+  pressure: ["driving momentum with clear deadlines", "deadlines and follow-up"],
+  legitimating: ["anchoring requests in clear rules and roles", "rules and formal authority"],
+  coalition: ["rallying allies behind your ideas", "lining up allies"],
+};
+// Top set = every lever at the highest score, plus the second-highest score's levers
+// when only one lever is at the top. The families in the top set decide the style.
+function pickStyle(scored) {
+  const vals = scored.map(function (s) { return s.score; });
+  const max = Math.max.apply(null, vals);
+  let top = scored.filter(function (s) { return s.score === max; });
+  if (top.length === 1) {
+    const rest = vals.filter(function (v) { return v < max; });
+    if (rest.length) { const second = Math.max.apply(null, rest); top = top.concat(scored.filter(function (s) { return s.score === second; })); }
+  }
+  const fams = {}; top.forEach(function (s) { fams[s.group] = true; });
+  const c = !!fams.CORE, so = !!fams.SOFT, h = !!fams.HARD;
+  const key = c && so && h ? "adapter" : c && so ? "engager" : c && h ? "strategist" : so && h ? "dealmaker" : c ? "builder" : so ? "connector" : "driver";
+  return { key: key, top: top };
+}
+function joinAnd(items) {
+  if (items.length <= 1) return items.slice();
+  const out = [];
+  items.forEach(function (it, i) { if (i > 0) out.push(i === items.length - 1 ? " and " : ", "); out.push(it); });
+  return out;
+}
+function StyleBox(props) {
+  const st = STYLES[props.styleKey];
+  const move = function (s, idx) { return <span key={s.id}><b style={{ color: C.ink }}>{LEVER_PHRASE[s.id][idx]}</b> ({s.name})</span>; };
+  const label = { fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.18em", color: C.green, textTransform: "uppercase" };
+  const para = { fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "6px 0 0" };
+  return (
+    <div style={{ marginTop: 22, background: C.tint, borderTop: "4px solid " + C.green, borderRadius: 10, padding: "24px 22px 24px" }}>
+      <Kicker>YOUR INFLUENCE STYLE</Kicker>
+      <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 34, lineHeight: 1.05, color: C.ink, marginTop: 10 }}>{st.name}</div>
+      <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 19, lineHeight: 1.3, color: C.green, marginTop: 8 }}>{st.headline}</div>
+      <p style={{ fontFamily: BODY, fontSize: 15, color: C.ink, lineHeight: 1.6, margin: "12px 0 0" }}>{st.desc}</p>
+      <div style={{ height: 1, background: C.frame, margin: "18px 0 16px" }} />
+      <div style={label}>Your signature moves</div>
+      <p style={para}>{joinAnd(props.top.map(function (s) { return move(s, 0); }))}.</p>
+      <div style={Object.assign({}, label, { marginTop: 14 })}>People experience you as</div>
+      <p style={para}>{st.people.charAt(0).toUpperCase() + st.people.slice(1)}</p>
+      <div style={Object.assign({}, label, { marginTop: 14 })}>Your untapped edge</div>
+      <p style={para}>{joinAnd(props.focus.map(function (s) { return move(s, 1); }))}, a great place to stretch next. {st.further}</p>
+    </div>
+  );
+}
+
 function Results(props) {
   const answers = props.answers, name = props.name;
   const sessionName = props.facilitator ? (props.sessionName || "") : SESSION;
@@ -765,6 +853,8 @@ function Results(props) {
   const means = { CORE: gMean("CORE"), SOFT: gMean("SOFT"), HARD: gMean("HARD") };
   const consistency = computeConsistency(answers);
   const cRead = consistencyRead(consistency.pct);
+  const style = pickStyle(scored);
+  const styleInfo = STYLES[style.key];
 
   const lines = [];
   if (means.CORE >= 2.7 && means.CORE >= means.HARD && means.CORE >= means.SOFT) lines.push("You lean heavily on Core tactics — the mark of a sustainable influencer who earns commitment rather than compliance.");
@@ -812,6 +902,9 @@ function Results(props) {
     if (name) out.push("Name: " + name);
     if (sessionName) out.push("Session: " + sessionName);
     out.push("Consistency: " + consistency.pct + "% (" + titleCase(cRead.label) + ")"); out.push("");
+    out.push("INFLUENCE STYLE: " + styleInfo.name.toUpperCase() + " — " + styleInfo.headline);
+    out.push("Signature moves: " + style.top.map(function (s) { return LEVER_PHRASE[s.id][0] + " (" + s.name + ")"; }).join("; "));
+    out.push("Untapped edge: " + focusList.map(function (s) { return LEVER_PHRASE[s.id][1] + " (" + s.name + ")"; }).join("; ")); out.push("");
     out.push("CORE"); out = out.concat(grp("CORE"));
     out.push("SOFT"); out = out.concat(grp("SOFT"));
     out.push("HARD"); out = out.concat(grp("HARD")); out.push("");
@@ -875,6 +968,7 @@ function Results(props) {
         <h1 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 44, lineHeight: 1.0, color: C.ink, margin: "18px 0 0" }}>
           Your Influence<br /><span style={{ color: C.green }}>Profile</span>
         </h1>
+        <StyleBox styleKey={style.key} top={style.top} focus={focusList} />
         <p style={{ fontFamily: BODY, fontSize: 15, color: C.muted, lineHeight: 1.55, margin: "16px 0 0", maxWidth: 520 }}>
           Each lever’s score is how many of its four head-to-heads it won (0–4). <b>2 is the balance
           point.</b> Bands: <b>Underused</b> (0–1), <b>Situational</b> (2), <b>Signature</b> (3–4).
