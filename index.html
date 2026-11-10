@@ -474,24 +474,6 @@ const colText = { fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 
 const smallLabel = { fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.22em", color: C.green };
 
 function Landing(props) {
-  const families = [
-    [tx("CORE · 5 TACTICS", "TERAS · 5 TAKTIK"), tx("Commitment builders", "Membina komitmen"), ["rational", "consultation", "collaboration", "inspirational", "apprising"]],
-    [tx("SOFT · 3 TACTICS", "LEMBUT · 3 TAKTIK"), tx("Relationship levers", "Mengukuhkan hubungan"), ["ingratiation", "personal", "exchange"]],
-    [tx("HARD · 3 TACTICS", "KERAS · 3 TAKTIK"), tx("Pressure levers", "Menegaskan tindakan"), ["pressure", "legitimating", "coalition"]],
-  ];
-  const outcomes = [
-    [tx("Commitment", "Komitmen"), tx("People agree and put in real effort. Most often the result of Core tactics.", "Orang lain bersetuju dan benar-benar berusaha menjayakan tugas. Ini lebih kerap dicapai melalui pendekatan Teras."), C.green],
-    [tx("Compliance", "Pematuhan"), tx("People do what is asked, but only the minimum, and often reluctantly.", "Orang lain melakukan apa yang diminta, tetapi mungkin hanya pada tahap minimum dan tanpa kerelaan sepenuhnya."), C.ink],
-    [tx("Resistance", "Penentangan"), tx("People push back, delay or quietly avoid. A common cost of overused Hard tactics.", "Orang lain membantah, melengah-lengahkan tugas atau cuba mengelak. Ini boleh berlaku apabila pendekatan Keras digunakan secara berlebihan."), C.grey],
-  ];
-  const gets = [
-    LANG === "ms" ? ["Gaya anda mempengaruhi orang lain", ", dengan ringkasan pendekatan yang biasa anda gunakan"] : ["Your influence style", ", an overall summary of how you influence"],
-    LANG === "ms" ? ["Profil bagi kesemua 11 pendekatan", ", yang dibahagikan kepada kumpulan Teras, Lembut dan Keras"] : ["A profile across all 11 levers", ", grouped into Core, Soft and Hard"],
-    LANG === "ms" ? ["Kekuatan utama anda", ", berserta ulasan dan cadangan untuk terus berkembang"] : ["Every signature strength", ", with a coaching review and a useful stretch"],
-    LANG === "ms" ? ["Bidang yang boleh dipertingkatkan", ", bersama langkah kecil yang boleh anda cuba"] : ["Each development focus area", ", with a small experiment to try"],
-    LANG === "ms" ? ["Skor ketekalan jawapan", " yang menunjukkan sejauh mana pilihan anda selaras"] : ["A consistency score", " showing how reliable the read is"],
-    LANG === "ms" ? ["Laporan dalam format PDF", " yang boleh disimpan dan dibawa ke sesi perbincangan"] : ["A PDF download", " to keep and bring to your debrief"],
-  ];
   return (
     <div style={{ maxWidth: 720, margin: "0 auto", padding: "36px 28px 64px" }}>
       {/* hero */}
@@ -539,124 +521,167 @@ function Landing(props) {
         <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, lineHeight: 1.1 }}>{tx("Ready to find out?", "Ingin kenali gaya anda?")}</div>
         <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>{tx("22 quick choices, under two minutes. Go with your gut; there are no right answers.", "Jawab 22 soalan ringkas dalam masa kurang dua minit. Pilih jawapan yang paling menggambarkan diri anda. Tiada jawapan betul atau salah.")}</p>
         <button onClick={props.onBegin} style={Object.assign({}, btnPrimary, btnGo, { marginTop: 20 })} onMouseDown={function (e) { e.preventDefault(); }}>{tx("BEGIN THE TEST →", "MULA MENJAWAB →")}</button>
-        <p style={{ fontFamily: BODY, fontSize: 12.5, color: C.grey, textAlign: "center", margin: "12px 0 0" }}>{tx("Or read on to learn more about the audit.", "Atau teruskan membaca untuk mengetahui lebih lanjut tentang penilaian ini.")}</p>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 44 }}>
-        <span style={{ flex: 1, height: 1, background: C.hairline }} />
-        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.26em", color: C.grey }}>{tx("MORE ABOUT THE AUDIT", "MENGENAI PENILAIAN INI")}</span>
-        <span style={{ flex: 1, height: 1, background: C.hairline }} />
-      </div>
-
-      {/* framework */}
-      <Section kicker={tx("THE FRAMEWORK", "RANGKA KERJA")} title={tx("Built on Yukl’s eleven influence tactics", "Berdasarkan 11 taktik mempengaruhi yang diperkenalkan oleh Yukl")}
-        lead={tx("Gary Yukl’s research on proactive influence tactics is one of the most widely cited models of how people win support at work. The audit groups his eleven tactics into three families.", "Kajian Gary Yukl tentang taktik mempengaruhi secara proaktif sering dijadikan rujukan untuk memahami cara mendapatkan sokongan di tempat kerja. Penilaian ini membahagikan 11 taktik tersebut kepada tiga kumpulan.")}>
-        <div style={cols3}>
-          {families.map(function (f) {
-            return (
-              <div key={f[0]} style={{ borderTop: "2px solid " + C.ink, paddingTop: 16 }}>
-                <div style={smallLabel}>{f[0]}</div>
-                <div style={Object.assign({}, colHead, { marginTop: 8 })}>{f[1]}</div>
-                <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.7 }}>
-                  {f[2].map(function (t) { return <li key={t}>{niceName(TACTICS.filter(function (x) { return x.id === t; })[0].name)}</li>; })}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
-      </Section>
-
-      {/* outcomes */}
-      <Section kicker={tx("WHY THE LEVER MATTERS", "KESAN SETIAP PENDEKATAN")} title={tx("The lever you pull shapes the response you get", "Cara anda mempengaruhi menentukan respons orang lain")}>
-        <div style={cols3}>
-          {outcomes.map(function (o, i) {
-            return (
-              <div key={o[0]}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <span style={{ width: 16, height: 16, borderRadius: "50%", background: o[2], flexShrink: 0 }} />
-                  <span style={{ flex: 1, height: 2, background: i < 2 ? C.hairline : "transparent" }} />
-                </div>
-                <div style={colHead}>{o[0]}</div>
-                <p style={colText}>{o[1]}</p>
-              </div>
-            );
-          })}
-        </div>
-        <p style={{ fontFamily: BODY, fontSize: 18, color: C.ink, lineHeight: 1.5, margin: "26px 0 0" }}>
-          {tx("Strengthening Core tactics is the most direct route from compliance to ", "Memperkukuh pendekatan Teras dapat membantu mengubah pematuhan semata-mata kepada ")}<span style={{ color: C.green, fontWeight: 700 }}>{tx("commitment", "komitmen")}</span>.
-        </p>
-      </Section>
-
-      {/* how it works */}
-      <Section kicker={tx("HOW IT WORKS", "CARA IA BERFUNGSI")} title={tx("Forced choice, not self-flattery", "Pilih yang paling menggambarkan diri anda")}
-        lead={tx("Rating scales let everyone score themselves highly. This audit shows two statements at a time and asks which is more true of you. Every answer is a trade-off, so your result reveals the levers you genuinely favour.", "Dalam skala penilaian biasa, seseorang boleh memberikan skor tinggi kepada dirinya untuk hampir semua perkara. Di sini, anda akan melihat dua pernyataan dan memilih satu yang lebih menggambarkan diri anda. Melalui pilihan ini, anda dapat mengenal pasti pendekatan yang lebih cenderung anda gunakan.")}>
-        <div style={{ display: "flex", alignItems: "stretch", gap: 10, marginTop: 22, flexWrap: "wrap" }}>
-          <div style={{ flex: "1 1 220px", display: "flex", alignItems: "center", gap: 12, border: "1px solid " + C.hairline, padding: "14px", fontFamily: BODY, fontSize: 14.5, color: C.ink }}>
-            <LineIcon markup={ICONS.rational[1]} size={24} />
-            <span>{TACTICS[0].items[1]}</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.16em", color: C.green }}>{tx("OR", "ATAU")}</div>
-          <div style={{ flex: "1 1 220px", display: "flex", alignItems: "center", gap: 12, border: "1px solid " + C.hairline, padding: "14px", fontFamily: BODY, fontSize: 14.5, color: C.ink }}>
-            <LineIcon markup={ICONS.coalition[1]} size={24} />
-            <span>{TACTICS[10].items[1]}</span>
-          </div>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", border: "1px solid " + C.hairline, marginTop: 22 }}>
-          {[["22", tx("quick choices", "pilihan ringkas")], ["<2", tx("minutes, on any phone", "minit, melalui telefon")], ["11", tx("levers profiled", "pendekatan dinilai")]].map(function (st, i) {
-            return (
-              <div key={st[1]} style={{ padding: "16px 8px", textAlign: "center", borderLeft: i === 0 ? "none" : "1px solid " + C.hairline }}>
-                <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 32, color: C.ink }}>{st[0]}</div>
-                <div style={{ fontFamily: BODY, fontSize: 12, color: C.muted, marginTop: 2 }}>{st[1]}</div>
-              </div>
-            );
-          })}
-        </div>
-      </Section>
-
-      {/* what you get */}
-      <Section kicker={tx("WHAT YOU GET", "APA YANG ANDA DAPAT")} title={tx("An instant, personal influence profile", "Laporan peribadi tentang gaya anda mempengaruhi orang lain")}>
-        <div style={{ marginTop: 18 }}>
-          {gets.map(function (g) {
-            return (
-              <div key={g[0]} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 0", borderBottom: "1px solid " + C.hairline }}>
-                <span style={{ flexShrink: 0, marginTop: 2 }}><LineIcon markup={UI_ICONS.check} size={20} color={C.green} /></span>
-                <span style={{ fontFamily: BODY, fontSize: 15.5, color: C.ink, lineHeight: 1.5 }}><b>{g[0]}</b>{g[1]}</span>
-              </div>
-            );
-          })}
-        </div>
-      </Section>
-
-      {/* is / isn't */}
-      <Section kicker={tx("BEFORE YOU START", "SEBELUM ANDA MULA")} title={tx("What the audit is, and what it isn’t", "Tujuan dan batasan penilaian ini")}>
-        <div style={cols3}>
-          <div style={{ borderTop: "2px solid " + C.green, paddingTop: 14 }}>
-            <div style={smallLabel}>{tx("IT IS", "PENILAIAN INI")}</div>
-            <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.65 }}>
-              <li>{tx("A development tool showing the levers you prefer", "Alat untuk mengenal pasti pendekatan yang biasa anda pilih")}</li>
-              <li>{tx("A profile that compares your own levers with each other", "Profil yang membandingkan kecenderungan anda terhadap setiap pendekatan")}</li>
-              <li>{tx("Grounded in Yukl’s published research on influence tactics", "Berasaskan penyelidikan Yukl tentang taktik mempengaruhi")}</li>
-              <li>{tx("Private: you see only your own result", "Peribadi: anda hanya dapat melihat keputusan sendiri")}</li>
-            </ul>
-          </div>
-          <div style={{ borderTop: "2px solid " + C.hairline, paddingTop: 14 }}>
-            <div style={Object.assign({}, smallLabel, { color: C.grey })}>{tx("IT ISN’T", "PENILAIAN INI BUKAN")}</div>
-            <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.65 }}>
-              <li>{tx("A test of your ability or performance", "Ujian kebolehan atau prestasi kerja")}</li>
-              <li>{tx("A ranking of you against other people", "Perbandingan kedudukan anda dengan peserta lain")}</li>
-              <li>{tx("A clinically validated psychometric test", "Ujian psikometrik yang telah disahkan secara klinikal")}</li>
-              <li>{tx("Visible to other participants", "Sesuatu yang boleh dilihat oleh peserta lain")}</li>
-            </ul>
-          </div>
-        </div>
-      </Section>
-
-      {/* call to action */}
-      <div style={{ marginTop: 48, background: C.tint, border: "1px solid " + C.green, borderRadius: 10, padding: "26px 24px" }}>
-        <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, lineHeight: 1.1 }}>{tx("Ready? It takes under two minutes.", "Bersedia? Hanya perlu kurang dua minit.")}</div>
-        <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>{tx("Go with your gut. There are no right answers.", "Pilih jawapan yang paling menggambarkan diri anda. Tiada jawapan betul atau salah.")}</p>
-        <button onClick={props.onBegin} style={Object.assign({}, btnPrimary, btnGo, { marginTop: 20 })} onMouseDown={function (e) { e.preventDefault(); }}>{tx("BEGIN THE TEST →", "MULA MENJAWAB →")}</button>
+        <button onClick={props.onMore} style={Object.assign({}, btnGhost, { marginTop: 12, background: "transparent" })} onMouseDown={function (e) { e.preventDefault(); }}>{tx("FIND OUT MORE", "KETAHUI LEBIH LANJUT")}</button>
       </div>
       <p style={{ fontFamily: BODY, fontSize: 11.5, color: C.grey, textAlign: "center", margin: "28px 0 0" }}>© 2026 Growth Impact Group Malaysia Sdn. Bhd.</p>
+    </div>
+  );
+}
+
+/* ============================================================ MORE ABOUT THE AUDIT (one section per page) */
+function About(props) {
+  const families = [
+    [tx("CORE · 5 TACTICS", "TERAS · 5 TAKTIK"), tx("Commitment builders", "Membina komitmen"), ["rational", "consultation", "collaboration", "inspirational", "apprising"]],
+    [tx("SOFT · 3 TACTICS", "LEMBUT · 3 TAKTIK"), tx("Relationship levers", "Mengukuhkan hubungan"), ["ingratiation", "personal", "exchange"]],
+    [tx("HARD · 3 TACTICS", "KERAS · 3 TAKTIK"), tx("Pressure levers", "Menegaskan tindakan"), ["pressure", "legitimating", "coalition"]],
+  ];
+  const outcomes = [
+    [tx("Commitment", "Komitmen"), tx("People agree and put in real effort. Most often the result of Core tactics.", "Orang lain bersetuju dan benar-benar berusaha menjayakan tugas. Ini lebih kerap dicapai melalui pendekatan Teras."), C.green],
+    [tx("Compliance", "Pematuhan"), tx("People do what is asked, but only the minimum, and often reluctantly.", "Orang lain melakukan apa yang diminta, tetapi mungkin hanya pada tahap minimum dan tanpa kerelaan sepenuhnya."), C.ink],
+    [tx("Resistance", "Penentangan"), tx("People push back, delay or quietly avoid. A common cost of overused Hard tactics.", "Orang lain membantah, melengah-lengahkan tugas atau cuba mengelak. Ini boleh berlaku apabila pendekatan Keras digunakan secara berlebihan."), C.grey],
+  ];
+  const gets = [
+    LANG === "ms" ? ["Gaya anda mempengaruhi orang lain", ", dengan ringkasan pendekatan yang biasa anda gunakan"] : ["Your influence style", ", an overall summary of how you influence"],
+    LANG === "ms" ? ["Profil bagi kesemua 11 pendekatan", ", yang dibahagikan kepada kumpulan Teras, Lembut dan Keras"] : ["A profile across all 11 levers", ", grouped into Core, Soft and Hard"],
+    LANG === "ms" ? ["Kekuatan utama anda", ", berserta ulasan dan cadangan untuk terus berkembang"] : ["Every signature strength", ", with a coaching review and a useful stretch"],
+    LANG === "ms" ? ["Bidang yang boleh dipertingkatkan", ", bersama langkah kecil yang boleh anda cuba"] : ["Each development focus area", ", with a small experiment to try"],
+    LANG === "ms" ? ["Skor ketekalan jawapan", " yang menunjukkan sejauh mana pilihan anda selaras"] : ["A consistency score", " showing how reliable the read is"],
+    LANG === "ms" ? ["Laporan dalam format PDF", " yang boleh disimpan dan dibawa ke sesi perbincangan"] : ["A PDF download", " to keep and bring to your debrief"],
+  ];
+  const [step, setStep] = useState(0);
+  useEffect(function () { window.scrollTo(0, 0); }, [step]);
+  const slides = [
+      (
+      <Section kicker={tx("THE FRAMEWORK", "RANGKA KERJA")} title={tx("Built on Yukl’s eleven influence tactics", "Berdasarkan 11 taktik mempengaruhi yang diperkenalkan oleh Yukl")}
+          lead={tx("Gary Yukl’s research on proactive influence tactics is one of the most widely cited models of how people win support at work. The audit groups his eleven tactics into three families.", "Kajian Gary Yukl tentang taktik mempengaruhi secara proaktif sering dijadikan rujukan untuk memahami cara mendapatkan sokongan di tempat kerja. Penilaian ini membahagikan 11 taktik tersebut kepada tiga kumpulan.")}>
+          <div style={cols3}>
+            {families.map(function (f) {
+              return (
+                <div key={f[0]} style={{ borderTop: "2px solid " + C.ink, paddingTop: 16 }}>
+                  <div style={smallLabel}>{f[0]}</div>
+                  <div style={Object.assign({}, colHead, { marginTop: 8 })}>{f[1]}</div>
+                  <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.7 }}>
+                    {f[2].map(function (t) { return <li key={t}>{niceName(TACTICS.filter(function (x) { return x.id === t; })[0].name)}</li>; })}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+      ),
+      (
+      <Section kicker={tx("WHY THE LEVER MATTERS", "KESAN SETIAP PENDEKATAN")} title={tx("The lever you pull shapes the response you get", "Cara anda mempengaruhi menentukan respons orang lain")}>
+          <div style={cols3}>
+            {outcomes.map(function (o, i) {
+              return (
+                <div key={o[0]}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <span style={{ width: 16, height: 16, borderRadius: "50%", background: o[2], flexShrink: 0 }} />
+                    <span style={{ flex: 1, height: 2, background: i < 2 ? C.hairline : "transparent" }} />
+                  </div>
+                  <div style={colHead}>{o[0]}</div>
+                  <p style={colText}>{o[1]}</p>
+                </div>
+              );
+            })}
+          </div>
+          <p style={{ fontFamily: BODY, fontSize: 18, color: C.ink, lineHeight: 1.5, margin: "26px 0 0" }}>
+            {tx("Strengthening Core tactics is the most direct route from compliance to ", "Memperkukuh pendekatan Teras dapat membantu mengubah pematuhan semata-mata kepada ")}<span style={{ color: C.green, fontWeight: 700 }}>{tx("commitment", "komitmen")}</span>.
+          </p>
+        </Section>
+      ),
+      (
+      <Section kicker={tx("HOW IT WORKS", "CARA IA BERFUNGSI")} title={tx("Forced choice, not self-flattery", "Pilih yang paling menggambarkan diri anda")}
+          lead={tx("Rating scales let everyone score themselves highly. This audit shows two statements at a time and asks which is more true of you. Every answer is a trade-off, so your result reveals the levers you genuinely favour.", "Dalam skala penilaian biasa, seseorang boleh memberikan skor tinggi kepada dirinya untuk hampir semua perkara. Di sini, anda akan melihat dua pernyataan dan memilih satu yang lebih menggambarkan diri anda. Melalui pilihan ini, anda dapat mengenal pasti pendekatan yang lebih cenderung anda gunakan.")}>
+          <div style={{ display: "flex", alignItems: "stretch", gap: 10, marginTop: 22, flexWrap: "wrap" }}>
+            <div style={{ flex: "1 1 220px", display: "flex", alignItems: "center", gap: 12, border: "1px solid " + C.hairline, padding: "14px", fontFamily: BODY, fontSize: 14.5, color: C.ink }}>
+              <LineIcon markup={ICONS.rational[1]} size={24} />
+              <span>{TACTICS[0].items[1]}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.16em", color: C.green }}>{tx("OR", "ATAU")}</div>
+            <div style={{ flex: "1 1 220px", display: "flex", alignItems: "center", gap: 12, border: "1px solid " + C.hairline, padding: "14px", fontFamily: BODY, fontSize: 14.5, color: C.ink }}>
+              <LineIcon markup={ICONS.coalition[1]} size={24} />
+              <span>{TACTICS[10].items[1]}</span>
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", border: "1px solid " + C.hairline, marginTop: 22 }}>
+            {[["22", tx("quick choices", "pilihan ringkas")], ["<2", tx("minutes, on any phone", "minit, melalui telefon")], ["11", tx("levers profiled", "pendekatan dinilai")]].map(function (st, i) {
+              return (
+                <div key={st[1]} style={{ padding: "16px 8px", textAlign: "center", borderLeft: i === 0 ? "none" : "1px solid " + C.hairline }}>
+                  <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 32, color: C.ink }}>{st[0]}</div>
+                  <div style={{ fontFamily: BODY, fontSize: 12, color: C.muted, marginTop: 2 }}>{st[1]}</div>
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+      ),
+      (
+      <Section kicker={tx("WHAT YOU GET", "APA YANG ANDA DAPAT")} title={tx("An instant, personal influence profile", "Laporan peribadi tentang gaya anda mempengaruhi orang lain")}>
+          <div style={{ marginTop: 18 }}>
+            {gets.map(function (g) {
+              return (
+                <div key={g[0]} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 0", borderBottom: "1px solid " + C.hairline }}>
+                  <span style={{ flexShrink: 0, marginTop: 2 }}><LineIcon markup={UI_ICONS.check} size={20} color={C.green} /></span>
+                  <span style={{ fontFamily: BODY, fontSize: 15.5, color: C.ink, lineHeight: 1.5 }}><b>{g[0]}</b>{g[1]}</span>
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+      ),
+      (
+      <Section kicker={tx("BEFORE YOU START", "SEBELUM ANDA MULA")} title={tx("What the audit is, and what it isn’t", "Tujuan dan batasan penilaian ini")}>
+          <div style={cols3}>
+            <div style={{ borderTop: "2px solid " + C.green, paddingTop: 14 }}>
+              <div style={smallLabel}>{tx("IT IS", "PENILAIAN INI")}</div>
+              <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontFamily: BODY, fontSize: 14.5, color: C.ink, lineHeight: 1.65 }}>
+                <li>{tx("A development tool showing the levers you prefer", "Alat untuk mengenal pasti pendekatan yang biasa anda pilih")}</li>
+                <li>{tx("A profile that compares your own levers with each other", "Profil yang membandingkan kecenderungan anda terhadap setiap pendekatan")}</li>
+                <li>{tx("Grounded in Yukl’s published research on influence tactics", "Berasaskan penyelidikan Yukl tentang taktik mempengaruhi")}</li>
+                <li>{tx("Private: you see only your own result", "Peribadi: anda hanya dapat melihat keputusan sendiri")}</li>
+              </ul>
+            </div>
+            <div style={{ borderTop: "2px solid " + C.hairline, paddingTop: 14 }}>
+              <div style={Object.assign({}, smallLabel, { color: C.grey })}>{tx("IT ISN’T", "PENILAIAN INI BUKAN")}</div>
+              <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.65 }}>
+                <li>{tx("A test of your ability or performance", "Ujian kebolehan atau prestasi kerja")}</li>
+                <li>{tx("A ranking of you against other people", "Perbandingan kedudukan anda dengan peserta lain")}</li>
+                <li>{tx("A clinically validated psychometric test", "Ujian psikometrik yang telah disahkan secara klinikal")}</li>
+                <li>{tx("Visible to other participants", "Sesuatu yang boleh dilihat oleh peserta lain")}</li>
+              </ul>
+            </div>
+          </div>
+        </Section>
+      )
+  ];
+  const last = step === slides.length - 1;
+  function back() { if (step > 0) setStep(step - 1); else props.onBack(); }
+  return (
+    <div style={{ maxWidth: 720, margin: "0 auto", padding: "28px 28px 64px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.24em", color: C.grey }}>{tx("MORE ABOUT THE AUDIT", "MENGENAI PENILAIAN INI")}</span>
+        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.16em", color: C.grey }}>{step + 1} / {slides.length}</span>
+      </div>
+      <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+        {slides.map(function (x, i) { return <div key={i} style={{ flex: 1, height: 3, background: i <= step ? C.green : C.hairline }} />; })}
+      </div>
+      <div key={step}>{slides[step]}</div>
+      {last ? (
+        <div>
+      <div style={{ marginTop: 48, background: C.tint, border: "1px solid " + C.green, borderRadius: 10, padding: "26px 24px" }}>
+            <div style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 26, color: C.ink, lineHeight: 1.1 }}>{tx("Ready? It takes under two minutes.", "Bersedia? Hanya perlu kurang dua minit.")}</div>
+            <p style={{ fontFamily: BODY, fontSize: 14.5, color: C.muted, lineHeight: 1.55, margin: "8px 0 0" }}>{tx("Go with your gut. There are no right answers.", "Pilih jawapan yang paling menggambarkan diri anda. Tiada jawapan betul atau salah.")}</p>
+            <button onClick={props.onBegin} style={Object.assign({}, btnPrimary, btnGo, { marginTop: 20 })} onMouseDown={function (e) { e.preventDefault(); }}>{tx("BEGIN THE TEST →", "MULA MENJAWAB →")}</button>
+          </div>
+        </div>
+      ) : (
+        <button onClick={function () { setStep(step + 1); }} style={Object.assign({}, btnPrimary, { marginTop: 44 })} onMouseDown={function (e) { e.preventDefault(); }}>{tx("NEXT →", "SETERUSNYA →")}</button>
+      )}
+      <div style={{ textAlign: "center", marginTop: 18 }}>
+        <button onClick={back} onMouseDown={function (e) { e.preventDefault(); }}
+          style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.14em", background: "none", border: "none", cursor: "pointer", color: C.grey, padding: "10px 0" }}>{tx("← BACK", "← KEMBALI")}</button>
+      </div>
     </div>
   );
 }
@@ -701,12 +726,12 @@ function Intro(props) {
 
       <div style={{ display: "flex", alignItems: "stretch", gap: 10, marginTop: 22 }}>
         <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, border: "1px solid " + C.hairline, padding: "12px", fontFamily: BODY, fontSize: 13, color: C.ink }}>
-          <LineIcon markup={ICONS.rational[1]} size={22} />
+          <span style={{ flexShrink: 0, display: "flex" }}><LineIcon markup={ICONS.rational[1]} size={22} /></span>
           <span>{TACTICS[0].items[1]}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.16em", color: C.green }}>{tx("OR", "ATAU")}</div>
         <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, border: "1px solid " + C.hairline, padding: "12px", fontFamily: BODY, fontSize: 13, color: C.ink }}>
-          <LineIcon markup={ICONS.coalition[1]} size={22} />
+          <span style={{ flexShrink: 0, display: "flex" }}><LineIcon markup={ICONS.coalition[1]} size={22} /></span>
           <span>{TACTICS[10].items[1]}</span>
         </div>
       </div>
@@ -734,6 +759,58 @@ function Intro(props) {
 }
 
 /* ============================================================ AUDIT */
+/* ============================================================ BEFORE YOU BEGIN (3 slides) */
+const READY_ICONS = {
+  quiet: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>',
+  relax: '<circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line>',
+  work: '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>',
+};
+function Ready(props) {
+  const [step, setStep] = useState(0);
+  const topRef = useRef(null);
+  useEffect(function () { window.scrollTo(0, 0); }, [step]);
+  const slides = [
+    { icon: READY_ICONS.quiet,
+      title: tx("Find a quiet spot.", "Cari tempat yang tenang."),
+      line: tx("Choose a place where you won’t be interrupted for the next few minutes.", "Pilih tempat di mana anda tidak akan diganggu untuk beberapa minit."),
+      button: tx("I’M IN A QUIET SPOT →", "SAYA DI TEMPAT YANG TENANG →") },
+    { icon: READY_ICONS.relax,
+      title: tx("Relax. There are no right or wrong answers.", "Bertenang. Tiada jawapan yang betul atau salah."),
+      line: tx("Pick the one that sounds most like you, not the one you think sounds best.", "Pilih yang paling menggambarkan diri anda, bukan yang anda rasa paling baik."),
+      button: tx("I UNDERSTAND →", "SAYA FAHAM →") },
+    { icon: READY_ICONS.work,
+      title: tx("Think about how you act at work.", "Fikirkan cara anda bertindak di tempat kerja."),
+      line: tx("Answer based on how you usually deal with colleagues, clients and managers.", "Jawab berdasarkan cara anda biasanya berurusan dengan rakan sekerja, pelanggan dan pengurus."),
+      button: tx("I’M READY →", "SAYA SUDAH BERSEDIA →") },
+  ];
+  const sl = slides[step];
+  function next() { if (step < slides.length - 1) setStep(step + 1); else props.onDone(); }
+  function back() { if (step > 0) setStep(step - 1); else props.onBack(); }
+  return (
+    <div ref={topRef} style={{ maxWidth: 560, margin: "0 auto", padding: "28px 28px 56px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.24em", color: C.grey }}>{tx("BEFORE YOU BEGIN", "SEBELUM ANDA MULA")}</span>
+        <span style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.16em", color: C.grey }}>{tx("STEP ", "LANGKAH ")}{step + 1} / {slides.length}</span>
+      </div>
+      <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+        {slides.map(function (x, i) { return <div key={i} style={{ flex: 1, height: 3, background: i <= step ? C.green : C.hairline }} />; })}
+      </div>
+      <div key={step} style={{ textAlign: "center", padding: "64px 0 0" }}>
+        <div style={{ width: 84, height: 84, margin: "0 auto", borderRadius: "50%", background: C.tint, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <LineIcon markup={sl.icon} size={38} color={C.green} />
+        </div>
+        <h1 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: "clamp(28px, 8vw, 38px)", lineHeight: 1.05, color: C.ink, margin: "30px 0 0" }}>{sl.title}</h1>
+        <p style={{ fontFamily: BODY, fontSize: 17, color: C.muted, lineHeight: 1.55, margin: "16px auto 0", maxWidth: 420 }}>{sl.line}</p>
+      </div>
+      <button onClick={next} style={Object.assign({}, btnPrimary, btnGo, { marginTop: 44 })} onMouseDown={function (e) { e.preventDefault(); }}>{sl.button}</button>
+      <div style={{ textAlign: "center", marginTop: 18 }}>
+        <button onClick={back} onMouseDown={function (e) { e.preventDefault(); }}
+          style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 13, letterSpacing: "0.14em", background: "none", border: "none", cursor: "pointer", color: C.grey, padding: "10px 0" }}>{tx("← BACK", "← KEMBALI")}</button>
+      </div>
+    </div>
+  );
+}
+
 function Audit(props) {
   const session = props.session, answers = props.answers, page = props.page;
   const topRef = useRef(null);
@@ -769,7 +846,7 @@ function Audit(props) {
       <div style={{ height: 3, background: C.hairline, marginTop: 8, position: "relative" }}>
         <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: pct + "%", background: C.green, transition: "width .3s ease" }} />
       </div>
-      <p style={{ fontFamily: BODY, fontStyle: "italic", fontSize: 15, color: C.muted, textAlign: "center", margin: "36px 0 0" }}>{tx("When you need someone’s help or agreement…", "Apabila anda memerlukan bantuan atau persetujuan orang lain…")}</p>
+      <p style={{ fontFamily: BODY, fontStyle: "italic", fontSize: 15, color: C.muted, textAlign: "center", margin: "36px 0 0" }}>{tx("When you need to get something done at work that requires someone else’s support…", "Apabila anda perlu menyelesaikan sesuatu di tempat kerja yang memerlukan sokongan orang lain…")}</p>
       <h2 style={{ fontFamily: HEAD, fontWeight: 700, textTransform: "uppercase", fontSize: 30, lineHeight: 1.02, color: C.ink, margin: "8px 0 4px", textAlign: "center" }}>
         {tx("Which sounds", "Pernyataan manakah")}<br />{tx("more like you?", "lebih menggambarkan diri anda?")}
       </h2>
@@ -1463,9 +1540,11 @@ function App() {
   const [session, setSession] = useState(buildSession);
   return (
     <div style={{ minHeight: "100vh", background: C.white, color: C.ink, fontFamily: BODY }}>
-      {(screen === "landing" || screen === "intro") && <LangToggle />}
-      {screen === "landing" && <Landing onBegin={function () { setScreen("intro"); }} />}
-      {screen === "intro" && <Intro name={name} setName={setName} email={email} setEmail={setEmail} onBack={function () { setScreen("landing"); }} onBegin={function () { setPage(0); setAnswers({}); setSession(buildSession()); setScreen("audit"); }} />}
+      {(screen === "landing" || screen === "about" || screen === "intro") && <LangToggle />}
+      {screen === "landing" && <Landing onBegin={function () { setScreen("intro"); }} onMore={function () { setScreen("about"); }} />}
+      {screen === "about" && <About onBegin={function () { setScreen("intro"); }} onBack={function () { setScreen("landing"); }} />}
+      {screen === "intro" && <Intro name={name} setName={setName} email={email} setEmail={setEmail} onBack={function () { setScreen("landing"); }} onBegin={function () { setScreen("ready"); }} />}
+      {screen === "ready" && <Ready onBack={function () { setScreen("intro"); }} onDone={function () { setPage(0); setAnswers({}); setSession(buildSession()); setScreen("audit"); }} />}
       {screen === "audit" && <Audit session={session} answers={answers} setAnswers={setAnswers} page={page} setPage={setPage} onFinish={function () { setScreen("results"); }} />}
       {screen === "results" && <Results answers={answers} name={name} email={email} onRestart={function () { setAnswers({}); setPage(0); setName(""); setEmail(""); setSession(buildSession()); setScreen("intro"); }} />}
     </div>
