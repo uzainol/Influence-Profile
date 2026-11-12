@@ -686,12 +686,44 @@ function About(props) {
   );
 }
 
+/* ============================================================ PRIVACY NOTICE (PDPA 2010) */
+/* Edit these two values if they change. */
+const PRIVACY_CONTACT = "enquiries@growthimpact.org";
+const RETENTION_MONTHS = 24;
+const PRIVACY_NOTICE = LANG === "ms" ? [
+  ["Siapa kami", "Growth Impact Group Malaysia Sdn. Bhd. (\u201cGIG\u201d) bertanggungjawab ke atas data peribadi anda yang dikumpul melalui penilaian ini."],
+  ["Data yang kami kumpul", "Alamat e-mel anda (wajib), nama anda (tidak wajib), 22 jawapan anda, skor dan laporan anda, nama program atau sesi, serta tarikh dan masa anda menjawab."],
+  ["Tujuan penggunaan", "Untuk menghasilkan laporan anda; membantu fasilitator anda menyediakan dan mengendalikan sesi; menghasilkan ringkasan kumpulan bagi program anda; menghubungi anda berkaitan program ini; dan, selepas nama dikeluarkan, menambah baik penilaian ini."],
+  ["Sumber data", "Data ini diperoleh secara terus daripada anda melalui penilaian ini."],
+  ["Siapa yang boleh melihatnya", "Fasilitator GIG. Organisasi yang menganjurkan program anda (contohnya pasukan sumber manusia atau pembelajaran) boleh menerima ringkasan kumpulan atau, jika dipersetujui bersama organisasi anda, laporan individu. Data anda disimpan oleh penyedia perkhidmatan kami, Google Firebase, dan mungkin disimpan di pelayan di luar Malaysia. Kami tidak menjual data anda."],
+  ["Pilihan anda", "Penyertaan adalah secara sukarela. Alamat e-mel diperlukan untuk menyimpan dan mengenal pasti keputusan anda. Jika anda tidak bersetuju, jangan mulakan penilaian ini dan tiada data akan disimpan."],
+  ["Tempoh simpanan", "Kami menyimpan data anda selama " + RETENTION_MONTHS + " bulan selepas program anda tamat, dan kemudian memadamkannya."],
+  ["Keselamatan", "Data anda disimpan dalam pangkalan data yang dilindungi dan hanya boleh dibaca oleh kakitangan GIG yang diberi kuasa."],
+  ["Hak anda", "Anda boleh meminta untuk melihat, membetulkan atau memadam data anda, atau menarik balik persetujuan anda, dengan menghubungi " + PRIVACY_CONTACT + ". Kami akan membalas dalam tempoh 21 hari."],
+] : [
+  ["Who we are", "Growth Impact Group Malaysia Sdn. Bhd. (\u201cGIG\u201d) is responsible for the personal data collected through this audit."],
+  ["What we collect", "Your email address (required), your name (optional), your 22 answers, your scores and report, the programme or session name, and the date and time you took the audit."],
+  ["Why we use it", "To produce your report; to help your facilitator prepare and run your session; to create group summaries for your programme; to contact you about this programme; and, with names removed, to improve the audit."],
+  ["Where it comes from", "Directly from you, through this audit."],
+  ["Who can see it", "GIG facilitators. The organisation that arranged your programme (for example, your HR or learning team) may receive group summaries or, where agreed with your organisation, individual reports. Your data is held by our hosting provider, Google Firebase, and may be stored on servers outside Malaysia. We do not sell your data."],
+  ["Your choices", "Taking part is voluntary. Your email is needed to save and identify your result. If you don\u2019t agree, simply don\u2019t start, and nothing is saved."],
+  ["How long we keep it", RETENTION_MONTHS + " months after your programme ends, then we delete it."],
+  ["How we protect it", "Your data is stored in a secured database that only authorised GIG staff can read."],
+  ["Your rights", "You can ask to see, correct or delete your data, or withdraw your consent, by emailing " + PRIVACY_CONTACT + ". We will reply within 21 days."],
+];
+
 /* ============================================================ INTRO */
 function Intro(props) {
   const [emailErr, setEmailErr] = useState(false);
+  const [consent, setConsent] = useState(false);
+  const [consentErr, setConsentErr] = useState(false);
+  const [noticeOpen, setNoticeOpen] = useState(false);
   function begin() {
     const e = (props.email || "").trim();
-    if (e && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { setEmailErr(true); return; }
+    const badEmail = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+    setEmailErr(badEmail);
+    setConsentErr(!consent);
+    if (badEmail || !consent) return;
     props.onBegin();
   }
   return (
@@ -740,14 +772,49 @@ function Intro(props) {
         <label style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.18em", color: C.grey }}>{tx("YOUR NAME (OPTIONAL)", "NAMA (TIDAK WAJIB)")}</label>
         <input value={props.name} onChange={function (e) { props.setName(e.target.value); }} placeholder={tx("e.g. Aisha R.", "cth. Aisha R.")}
           style={{ display: "block", width: "100%", marginTop: 8, padding: "12px 14px", fontFamily: BODY, fontSize: 15, color: C.ink, border: "1px solid " + C.hairline, outline: "none" }} />
-        <label style={{ display: "block", marginTop: 18, fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.18em", color: C.grey }}>{tx("YOUR EMAIL (OPTIONAL)", "ALAMAT E-MEL (TIDAK WAJIB)")}</label>
+        <label style={{ display: "block", marginTop: 18, fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.18em", color: C.grey }}>{tx("YOUR EMAIL (REQUIRED)", "ALAMAT E-MEL (WAJIB)")}</label>
         <input type="email" value={props.email} onChange={function (e) { props.setEmail(e.target.value); setEmailErr(false); }} placeholder={tx("e.g. aisha@company.com", "cth. aisha@syarikat.com")}
           style={{ display: "block", width: "100%", marginTop: 8, padding: "12px 14px", fontFamily: BODY, fontSize: 15, color: C.ink, border: "1px solid " + (emailErr ? "#B23B3B" : C.hairline), outline: "none" }} />
-        {emailErr && <p style={{ fontFamily: BODY, fontSize: 12.5, color: "#B23B3B", margin: "6px 0 0" }}>{tx("Please check your email address, or leave it blank.", "Sila semak alamat e-mel anda atau kosongkan ruangan ini.")}</p>}
-        <p style={{ fontFamily: BODY, fontSize: 11.5, color: C.grey, lineHeight: 1.5, margin: "10px 0 0" }}>
-          {tx("Your name, email and result are saved privately for your facilitator at Growth Impact Group and used only for this programme. They are not shared with other participants.", "Nama, alamat e-mel dan keputusan anda akan disimpan secara sulit untuk kegunaan fasilitator Growth Impact Group bagi program ini sahaja. Maklumat ini tidak dikongsi dengan peserta lain.")}
-        </p>
+        {emailErr && <p style={{ fontFamily: BODY, fontSize: 12.5, color: "#B23B3B", margin: "6px 0 0" }}>{tx("Please enter a valid email address.", "Sila masukkan alamat e-mel yang sah.")}</p>}
       </div>
+
+      <div style={{ marginTop: 26, border: "1px solid " + (consentErr ? "#B23B3B" : C.hairline), background: C.tint, padding: "18px 18px 14px" }}>
+        <Kicker>{tx("YOUR PRIVACY", "PRIVASI ANDA")}</Kicker>
+        <p style={{ fontFamily: BODY, fontSize: 13.5, color: C.ink, lineHeight: 1.55, margin: "10px 0 0" }}>
+          {tx("Growth Impact Group Malaysia Sdn. Bhd. (GIG) will collect your email, your name (optional), your answers and your results. We use them to give you your report and to support your programme.",
+              "Growth Impact Group Malaysia Sdn. Bhd. (GIG) akan mengumpul alamat e-mel, nama (tidak wajib), jawapan dan keputusan anda. Maklumat ini digunakan untuk menyediakan laporan anda dan menyokong program anda.")}
+        </p>
+        <button onClick={function () { setNoticeOpen(!noticeOpen); }} onMouseDown={function (e) { e.preventDefault(); }} aria-expanded={noticeOpen}
+          style={{ background: "none", border: "none", padding: "8px 0 0", cursor: "pointer", fontFamily: BODY, fontSize: 13.5, fontWeight: 700, color: C.green, textDecoration: "underline" }}>
+          {noticeOpen ? tx("Hide the full privacy notice ▴", "Tutup notis privasi penuh ▴") : tx("Read the full privacy notice ▾", "Baca notis privasi penuh ▾")}
+        </button>
+        {noticeOpen && (
+          <div style={{ marginTop: 10, background: C.white, border: "1px solid " + C.hairline, padding: "6px 14px" }}>
+            {PRIVACY_NOTICE.map(function (row, i) {
+              return (
+                <div key={i} style={{ padding: "10px 0", borderTop: i ? "1px solid " + C.hairline : "none" }}>
+                  <div style={{ fontFamily: HEAD, fontWeight: 700, fontSize: 11, letterSpacing: "0.14em", color: C.muted, textTransform: "uppercase" }}>{(i + 1) + ". " + row[0]}</div>
+                  <p style={{ fontFamily: BODY, fontSize: 13, color: C.ink, lineHeight: 1.55, margin: "4px 0 0" }}>{row[1]}</p>
+                </div>
+              );
+            })}
+            <p style={{ fontFamily: BODY, fontSize: 11.5, color: C.grey, lineHeight: 1.5, margin: "4px 0 8px" }}>
+              {tx("This notice is available in English and Bahasa Melayu. Use the BM | EN switch at the top of the page.", "Notis ini disediakan dalam Bahasa Melayu dan Bahasa Inggeris. Gunakan suis BM | EN di bahagian atas halaman.")}
+            </p>
+          </div>
+        )}
+        <button role="checkbox" aria-checked={consent} onClick={function () { setConsent(!consent); setConsentErr(false); }} onMouseDown={function (e) { e.preventDefault(); }}
+          style={{ display: "flex", alignItems: "flex-start", gap: 12, width: "100%", textAlign: "left", background: "none", border: "none", borderTop: "1px solid " + C.hairline, marginTop: 14, padding: "14px 0 4px", cursor: "pointer" }}>
+          <span style={{ flexShrink: 0, width: 22, height: 22, marginTop: 1, border: "2px solid " + (consent ? C.green : (consentErr ? "#B23B3B" : C.frame)), background: consent ? C.green : C.white, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {consent && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+          </span>
+          <span style={{ fontFamily: BODY, fontSize: 14, color: C.ink, lineHeight: 1.5 }}>
+            {tx("I have read the privacy notice and agree to GIG using my information as described, including storage on servers outside Malaysia.",
+                "Saya telah membaca notis privasi dan bersetuju GIG menggunakan maklumat saya seperti yang dinyatakan, termasuk penyimpanan di pelayan di luar Malaysia.")}
+          </span>
+        </button>
+      </div>
+      {consentErr && <p style={{ fontFamily: BODY, fontSize: 12.5, color: "#B23B3B", margin: "8px 0 0" }}>{tx("Please tick the box to agree before you begin.", "Sila tandakan kotak persetujuan sebelum anda mula.")}</p>}
 
       <button onClick={begin} style={btnPrimary} onMouseDown={function (e) { e.preventDefault(); }}>{tx("BEGIN THE AUDIT →", "MULAKAN AUDIT →")}</button>
 
