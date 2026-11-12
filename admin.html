@@ -92,7 +92,7 @@
       </ul>
       <h4>TONE</h4>
       <p>For Hard levers, avoid character judgments. Discuss context, consent, proportionality and the effect on trust.</p>
-      <p>When scores look mixed or the consistency rating is low, ask about differing real-life situations before attributing the pattern to careless responding.</p>
+      <p>Consistency of 80% or above means the profile can be treated as reliable. Below 80% (marked “explore” in the table) is not a problem: probe further. Ask which pairs felt equally true and how their approach changes with different people or situations before drawing conclusions.</p>
       <p>Scores are relative to each person’s own choices. They describe stated preferences, not influence skill.</p>
     </details>
     <div id="content"></div>
@@ -243,10 +243,10 @@ function render() {
   rows.forEach((r) => {
     const g = r.groupAvg || {};
     const repCell = maxOf(r) === 4
-      ? '<td><button class="rep" data-id="' + esc(r.id) + '">⤓ PDF</button></td>'
+      ? '<td><button class="rep" data-id="' + esc(r.id) + '">VIEW</button></td>'
       : '<td class="num" title="Earlier 33-question version: report not available">—</td>';
     html += '<tr>' + repCell + '<td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.session || "—") + '</td><td>' + esc(r.name || "—") + '</td><td>' + esc(r.email || "—") + '</td>'
-      + '<td class="num">' + esc(r.consistencyPct) + '%</td>'
+      + '<td class="num"' + ((r.consistencyPct || 0) < 80 ? ' style="color:#B23B3B" title="Below 80%: explore further in the debrief"' : '') + '>' + esc(r.consistencyPct) + '%' + ((r.consistencyPct || 0) < 80 ? ' · explore' : '') + '</td>'
       + '<td class="num">' + maxOf(r) + '</td>'
       + TACTICS.map((t) => '<td class="num">' + esc(r.scores ? r.scores[t[0]] : "") + '</td>').join("")
       + '<td class="num">' + esc(g.CORE) + '</td><td class="num">' + esc(g.SOFT) + '</td><td class="num">' + esc(g.HARD) + '</td>'
@@ -257,13 +257,13 @@ function render() {
 }
 
 /* Rebuild a participant's report: open the audit page with the saved answers in the
-   URL fragment (never sent to any server). The page shows the report and downloads the PDF. */
+   URL fragment (never sent to any server). The page shows the report; use its Download PDF button to save it. */
 function openReport(id) {
   const r = allRows.find((x) => x.id === id);
   if (!r || !r.answers) return;
   const data = { n: r.name || "", s: r.session || "", t: r.date ? r.date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "", a: r.answers };
   const enc = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(data)))));
-  window.open(new URL("index.html", location.href).href + "#report=" + enc + "&dl=1", "_blank");
+  window.open(new URL("index.html", location.href).href + "#report=" + enc, "_blank");
 }
 document.getElementById("content").addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest("button.rep");
@@ -279,7 +279,7 @@ function downloadCSV() {
   const lines = [header.map(q).join(",")];
   rows.forEach((r) => {
     const g = r.groupAvg || {};
-    lines.push([fmtDate(r.date), r.session || "", r.name, r.email || "", r.consistencyPct, r.consistencyLabel, maxOf(r)]
+    lines.push([fmtDate(r.date), r.session || "", r.name, r.email || "", r.consistencyPct, (r.consistencyPct || 0) >= 80 ? "Reliable (80%+)" : "Explore further (below 80%)", maxOf(r)]
       .concat(TACTICS.map((t) => (r.scores ? r.scores[t[0]] : "")))
       .concat([g.CORE, g.SOFT, g.HARD, focusOf(r), (r.strengths || []).join(", "), (r.blindSpots || []).join(", "), r.id])
       .map(q).join(","));
