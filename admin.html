@@ -306,20 +306,33 @@ async function uploadContent(db, file) {
     $("contentStatus").innerHTML = '<span class="err">' + (e.code === "permission-denied" ? "Upload blocked. Update your Firestore rules (content section) first." : esc(e.message)) + "</span>";
   }
 }
+let FULL_LANG = "en";   // last language chosen in a full report (BM | EN switch)
+function fullInput(r) {
+  return {
+    reportId: r.id, name: r.name || "", session: r.session || "", consistencyPct: r.consistencyPct || 0, scores: r.scores,
+    designation: r.designation || "", organisation: r.organisation || "",
+    dateText: r.date ? r.date.toLocaleDateString(FULL_LANG === "ms" ? "ms-MY" : "en-GB", { day: "numeric", month: "long", year: "numeric" }) : "",
+  };
+}
+function writeFull(w, r) {
+  w.document.open();
+  w.document.write(window.GIGFullReport.build(fullInput(r), FULL, FULL_LANG));
+  w.document.close();
+}
+/* Called by the BM | EN switch inside an open full report. */
+window.GIGRenderFull = function (id, lang, w) {
+  const r = allRows.find((x) => x.id === id);
+  if (!r || !FULL) return;
+  FULL_LANG = lang === "ms" ? "ms" : "en";
+  writeFull(w, r);
+};
 function openFull(id) {
   const r = allRows.find((x) => x.id === id);
   if (!r || !r.scores) return;
   if (!FULL || !window.GIGFullReport) { alert("Upload the full report content first (box above the table)."); return; }
-  const input = {
-    name: r.name || "", session: r.session || "", consistencyPct: r.consistencyPct || 0, scores: r.scores,
-    designation: r.designation || "", organisation: r.organisation || "",
-    dateText: r.date ? r.date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "",
-  };
   const w = window.open("", "_blank");
   if (!w) { $("error").textContent = "Your browser blocked the new tab. Allow pop-ups for this page and try again."; return; }
-  w.document.open();
-  w.document.write(window.GIGFullReport.build(input, FULL));
-  w.document.close();
+  writeFull(w, r);
 }
 
 /* Rebuild a participant's report: open the audit page with the saved answers in the
