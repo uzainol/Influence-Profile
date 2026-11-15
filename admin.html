@@ -9,6 +9,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="full-report.js"></script>
 <style>
   :root {
     --white:#FFFFFF; --ink:#1A1A1A; --green:#36AA54; --muted:#5F656C;
@@ -35,6 +36,11 @@
   details.prompts p { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 6px 0 0; }
   .rep { font-family: var(--head); font-weight: 700; font-size: 11px; letter-spacing: .1em; padding: 6px 10px; border: 1px solid var(--ink); background: var(--white); color: var(--ink); cursor: pointer; white-space: nowrap; }
   .rep:hover { background: var(--ink); color: var(--white); }
+  .rep.full { border-color: var(--green); color: var(--green); margin-left: 4px; }
+  .rep.full:hover { background: var(--green); color: var(--white); }
+  .rep[disabled] { opacity: .35; cursor: not-allowed; }
+  .contentbox { margin-top: 18px; border: 1px solid var(--hair); background: var(--tint); padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; max-width: 760px; }
+  .contentbox b { font-family: var(--head); letter-spacing: .14em; font-size: 12px; color: var(--green); }
   .note { font-size: 13px; color: var(--muted); line-height: 1.5; }
   .err { color: #B23B3B; }
   .stats { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--hair); max-width: 560px; }
@@ -95,6 +101,12 @@
       <p>Consistency of 80% or above means the profile can be treated as reliable. Below 80% (marked “explore” in the table) is not a problem: probe further. Ask which pairs felt equally true and how their approach changes with different people or situations before drawing conclusions.</p>
       <p>Scores are relative to each person’s own choices. They describe stated preferences, not influence skill.</p>
     </details>
+    <div class="contentbox">
+      <b>FULL REPORT</b>
+      <span class="note" id="contentStatus">Checking report content…</span>
+      <button class="btn ghost" id="uploadContent" style="padding:8px 14px;font-size:11px">⤒ UPLOAD CONTENT FILE</button>
+      <input type="file" id="contentFile" accept=".json,application/json" style="display:none" />
+    </div>
     <div id="content"></div>
   </div>
 
@@ -120,6 +132,8 @@ const TACTICS = [
 
 const $ = (id) => document.getElementById(id);
 let allRows = [];
+let FULL = null;       // full-report content library, loaded from Firestore after sign-in
+let DB = null;
 let rows = [];
 const NO_SESSION = "(no session)";
 const urlSession = new URLSearchParams(location.search).get("session") || "";
@@ -131,6 +145,9 @@ if (FIREBASE_CONFIG.apiKey.indexOf("PASTE") !== -1) {
   firebase.initializeApp(FIREBASE_CONFIG);
   const auth = firebase.auth();
   const db = firebase.firestore();
+  DB = db;
+  $("uploadContent").onclick = () => $("contentFile").click();
+  $("contentFile").onchange = (e) => { const f = e.target.files[0]; e.target.value = ""; if (f) uploadContent(db, f); };
 
   $("signIn").onclick = () => {
     $("error").textContent = "";
@@ -144,7 +161,7 @@ if (FIREBASE_CONFIG.apiKey.indexOf("PASTE") !== -1) {
     $("signedOut").style.display = user ? "none" : "block";
     $("signedIn").style.display = user ? "block" : "none";
     $("content").innerHTML = "";
-    if (user) { $("who").textContent = "Signed in as " + user.email; load(db); }
+    if (user) { $("who").textContent = "Signed in as " + user.email; load(db); loadContent(db); }
   });
 }
 
@@ -237,15 +254,15 @@ function render() {
   });
 
   html += '<div class="kicker">INDIVIDUAL RESULTS</div><div class="tablewrap"><table><thead><tr>'
-    + '<th>REPORT</th><th>DATE</th><th>SESSION</th><th>NAME</th><th>EMAIL</th><th>CONSISTENCY</th><th>OUT OF</th>'
+    + '<th>REPORT</th><th>DATE</th><th>SESSION</th><th>NAME</th><th>EMAIL</th><th>PHONE</th><th>COUNTRY</th><th>DESIGNATION</th><th>ORGANISATION</th><th>CONSISTENCY</th><th>OUT OF</th>'
     + TACTICS.map((t) => '<th title="' + t[1] + '">' + t[1].split(" ")[0] + '</th>').join("")
     + '<th>CORE</th><th>SOFT</th><th>HARD</th><th>DEVELOPMENT FOCUS</th></tr></thead><tbody>';
   rows.forEach((r) => {
     const g = r.groupAvg || {};
     const repCell = maxOf(r) === 4
-      ? '<td><button class="rep" data-id="' + esc(r.id) + '">VIEW</button></td>'
+      ? '<td><button class="rep" data-id="' + esc(r.id) + '">VIEW</button><button class="rep full" data-full="' + esc(r.id) + '"' + (FULL ? ' title="Full report"' : ' disabled title="Upload the full report content first"') + '>FULL</button></td>'
       : '<td class="num" title="Earlier 33-question version: report not available">—</td>';
-    html += '<tr>' + repCell + '<td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.session || "—") + '</td><td>' + esc(r.name || "—") + '</td><td>' + esc(r.email || "—") + '</td>'
+    html += '<tr>' + repCell + '<td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.session || "—") + '</td><td>' + esc(r.name || "—") + '</td><td>' + esc(r.email || "—") + '</td><td>' + esc(r.phone || "—") + '</td><td>' + esc(r.country || "—") + '</td><td>' + esc(r.designation || "—") + '</td><td>' + esc(r.organisation || "—") + '</td>'
       + '<td class="num"' + ((r.consistencyPct || 0) < 80 ? ' style="color:#B23B3B" title="Below 80%: explore further in the debrief"' : '') + '>' + esc(r.consistencyPct) + '%' + ((r.consistencyPct || 0) < 80 ? ' · explore' : '') + '</td>'
       + '<td class="num">' + maxOf(r) + '</td>'
       + TACTICS.map((t) => '<td class="num">' + esc(r.scores ? r.scores[t[0]] : "") + '</td>').join("")
@@ -254,6 +271,55 @@ function render() {
   });
   html += '</tbody></table></div>';
   $("content").innerHTML = html;
+}
+
+/* ---------- Full (paid) report ----------
+   The content library is kept in Firestore at content/fullReport and can only be read by the admin
+   (see firestore.rules). It is never part of the public website code. */
+async function loadContent(db) {
+  try {
+    const d = await db.collection("content").doc("fullReport").get();
+    if (d.exists) {
+      FULL = JSON.parse(d.data().data);
+      const when = d.data().updatedAt ? d.data().updatedAt.toDate().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
+      $("contentStatus").textContent = "Content loaded · version " + (FULL.version || "?") + (when ? " · uploaded " + when : "") + ". Use FULL in the table to open a participant’s full report.";
+    } else {
+      FULL = null;
+      $("contentStatus").textContent = "Not set up yet. Upload full-report-content.json to turn on FULL reports.";
+    }
+  } catch (e) {
+    FULL = null;
+    $("contentStatus").innerHTML = '<span class="err">' + (e.code === "permission-denied" ? "Can’t read the report content. Update your Firestore rules (content section), then refresh." : esc(e.message)) + "</span>";
+  }
+  if (rows.length) render();
+}
+async function uploadContent(db, file) {
+  try {
+    const text = await file.text();
+    const c = JSON.parse(text);
+    const ok = c && c.levers && c.styles && c.situations && TACTICS.every((t) => c.levers[t[0]]);
+    if (!ok) throw new Error("This doesn’t look like the full report content file.");
+    $("contentStatus").textContent = "Uploading…";
+    await db.collection("content").doc("fullReport").set({ data: text, version: String(c.version || ""), updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    await loadContent(db);
+  } catch (e) {
+    $("contentStatus").innerHTML = '<span class="err">' + (e.code === "permission-denied" ? "Upload blocked. Update your Firestore rules (content section) first." : esc(e.message)) + "</span>";
+  }
+}
+function openFull(id) {
+  const r = allRows.find((x) => x.id === id);
+  if (!r || !r.scores) return;
+  if (!FULL || !window.GIGFullReport) { alert("Upload the full report content first (box above the table)."); return; }
+  const input = {
+    name: r.name || "", session: r.session || "", consistencyPct: r.consistencyPct || 0, scores: r.scores,
+    designation: r.designation || "", organisation: r.organisation || "",
+    dateText: r.date ? r.date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "",
+  };
+  const w = window.open("", "_blank");
+  if (!w) { $("error").textContent = "Your browser blocked the new tab. Allow pop-ups for this page and try again."; return; }
+  w.document.open();
+  w.document.write(window.GIGFullReport.build(input, FULL));
+  w.document.close();
 }
 
 /* Rebuild a participant's report: open the audit page with the saved answers in the
@@ -267,19 +333,21 @@ function openReport(id) {
 }
 document.getElementById("content").addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest("button.rep");
-  if (b) openReport(b.getAttribute("data-id"));
+  if (!b || b.disabled) return;
+  if (b.hasAttribute("data-full")) openFull(b.getAttribute("data-full"));
+  else openReport(b.getAttribute("data-id"));
 });
 
 function downloadCSV() {
   if (!rows.length) return;
   const q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
-  const header = ["Date", "Session", "Name", "Email", "Consistency %", "Consistency", "Scores out of"]
+  const header = ["Date", "Session", "Name", "Email", "Phone", "Country", "Designation", "Organisation", "Consistency %", "Consistency", "Scores out of"]
     .concat(TACTICS.map((t) => t[1]))
     .concat(["CORE avg", "SOFT avg", "HARD avg", "Development focus", "Most-used levers", "Less-used levers", "Record ID"]);
   const lines = [header.map(q).join(",")];
   rows.forEach((r) => {
     const g = r.groupAvg || {};
-    lines.push([fmtDate(r.date), r.session || "", r.name, r.email || "", r.consistencyPct, (r.consistencyPct || 0) >= 80 ? "Reliable (80%+)" : "Explore further (below 80%)", maxOf(r)]
+    lines.push([fmtDate(r.date), r.session || "", r.name, r.email || "", r.phone || "", r.country || "", r.designation || "", r.organisation || "", r.consistencyPct, (r.consistencyPct || 0) >= 80 ? "Reliable (80%+)" : "Explore further (below 80%)", maxOf(r)]
       .concat(TACTICS.map((t) => (r.scores ? r.scores[t[0]] : "")))
       .concat([g.CORE, g.SOFT, g.HARD, focusOf(r), (r.strengths || []).join(", "), (r.blindSpots || []).join(", "), r.id])
       .map(q).join(","));
