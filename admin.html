@@ -61,6 +61,7 @@
   td { padding: 8px; border-top: 1px solid var(--hair); white-space: nowrap; }
   td.num { text-align: center; font-family: var(--head); font-weight: 700; }
   @media (max-width: 600px) { .bar { grid-template-columns: 130px 1fr 34px; } h1 { font-size: 32px; } }
+  .loopcell{font-size:11px;color:#8A5A00;margin-top:2px;cursor:help;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -116,6 +117,9 @@
 <script>
 const FIREBASE_CONFIG = window.FIREBASE_CONFIG || { apiKey: "PASTE" };
 
+/* The participant site now lives on GIG's website (hosted via GitLab). VIEW opens reports there,
+   so they always use the live version, even though this admin page stays on GitHub. */
+const LIVE_SITE = "https://growthimpactmalaysia.org/influence-profile/";
 const TACTICS = [
   ["rational", "RATIONAL PERSUASION", "CORE"],
   ["consultation", "CONSULTATION", "CORE"],
@@ -129,6 +133,29 @@ const TACTICS = [
   ["legitimating", "LEGITIMATING", "HARD"],
   ["coalition", "COALITION", "HARD"],
 ];
+/* Circular choices: three levers where each one "beat" another (A over B, B over C, C over A).
+   These are exactly the triads that lower the consistency score. */
+const tName = (id) => { const t = TACTICS.find((x) => x[0] === id); return t ? t[1] : id; };
+function loopsOf(r) {
+  const ans = r.answers;
+  if (!ans || typeof ans !== "object") return [];
+  const w = {}, ids = {};
+  Object.keys(ans).forEach((k) => { const p = k.split("__"); if (p.length !== 2) return; w[p[0] + ">" + p[1]] = ans[k] === p[0]; w[p[1] + ">" + p[0]] = ans[k] === p[1]; ids[p[0]] = ids[p[1]] = 1; });
+  const L = Object.keys(ids), out = [], has = (a, b) => (a + ">" + b) in w, beats = (a, b) => w[a + ">" + b];
+  for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) for (let k = j + 1; k < L.length; k++) {
+    const A = L[i], B = L[j], C = L[k];
+    if (!(has(A, B) && has(B, C) && has(A, C))) continue;
+    if (beats(A, B) && beats(B, C) && beats(C, A)) out.push([A, B, C]);
+    else if (beats(B, A) && beats(A, C) && beats(C, B)) out.push([B, A, C]);
+  }
+  return out;
+}
+function loopCell(r) {
+  const L = loopsOf(r);
+  if (!L.length) return "";
+  const full = L.map((t) => t.concat([t[0]]).map(tName).join(" › ")).join("\n");
+  return '<div class="loopcell" title="' + esc("Circular choices (each lowered consistency):\n" + full) + '">↻ ' + L.length + " loop" + (L.length > 1 ? "s" : "") + "</div>";
+}
 
 const $ = (id) => document.getElementById(id);
 let allRows = [];
@@ -263,7 +290,7 @@ function render() {
       ? '<td><button class="rep" data-id="' + esc(r.id) + '">VIEW</button><button class="rep full" data-full="' + esc(r.id) + '"' + (FULL ? ' title="Full report"' : ' disabled title="Upload the full report content first"') + '>FULL</button></td>'
       : '<td class="num" title="Earlier 33-question version: report not available">—</td>';
     html += '<tr>' + repCell + '<td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.session || "—") + '</td><td>' + esc(r.name || "—") + '</td><td>' + esc(r.email || "—") + '</td><td>' + esc(r.phone || "—") + '</td><td>' + esc(r.country || "—") + '</td><td>' + esc(r.designation || "—") + '</td><td>' + esc(r.organisation || "—") + '</td>'
-      + '<td class="num"' + ((r.consistencyPct || 0) < 80 ? ' style="color:#B23B3B" title="Below 80%: explore further in the debrief"' : '') + '>' + esc(r.consistencyPct) + '%' + ((r.consistencyPct || 0) < 80 ? ' · explore' : '') + '</td>'
+      + '<td class="num"' + ((r.consistencyPct || 0) < 80 ? ' style="color:#B23B3B" title="Below 80%: explore further in the debrief"' : '') + '>' + esc(r.consistencyPct) + '%' + ((r.consistencyPct || 0) < 80 ? ' · explore' : '') + loopCell(r) + '</td>'
       + '<td class="num">' + maxOf(r) + '</td>'
       + TACTICS.map((t) => '<td class="num">' + esc(r.scores ? r.scores[t[0]] : "") + '</td>').join("")
       + '<td class="num">' + esc(g.CORE) + '</td><td class="num">' + esc(g.SOFT) + '</td><td class="num">' + esc(g.HARD) + '</td>'
@@ -307,9 +334,10 @@ async function uploadContent(db, file) {
   }
 }
 let FULL_LANG = "en";   // last language chosen in a full report (BM | EN switch)
+const FULL_CALL = {};   // name to call each participant in their full report, if changed from the toolbar
 function fullInput(r) {
   return {
-    reportId: r.id, name: r.name || "", session: r.session || "", consistencyPct: r.consistencyPct || 0, scores: r.scores,
+    reportId: r.id, name: r.name || "", callName: FULL_CALL[r.id] || "", session: r.session || "", consistencyPct: r.consistencyPct || 0, scores: r.scores, answers: r.answers || null,
     designation: r.designation || "", organisation: r.organisation || "",
     dateText: r.date ? r.date.toLocaleDateString(FULL_LANG === "ms" ? "ms-MY" : "en-GB", { day: "numeric", month: "long", year: "numeric" }) : "",
   };
@@ -319,11 +347,12 @@ function writeFull(w, r) {
   w.document.write(window.GIGFullReport.build(fullInput(r), FULL, FULL_LANG));
   w.document.close();
 }
-/* Called by the BM | EN switch inside an open full report. */
-window.GIGRenderFull = function (id, lang, w) {
+/* Called by the BM | EN switch and the "Call them" name box inside an open full report. */
+window.GIGRenderFull = function (id, lang, w, callName) {
   const r = allRows.find((x) => x.id === id);
   if (!r || !FULL) return;
   FULL_LANG = lang === "ms" ? "ms" : "en";
+  if (typeof callName === "string") FULL_CALL[id] = callName.trim().slice(0, 40);
   writeFull(w, r);
 };
 function openFull(id) {
@@ -342,7 +371,7 @@ function openReport(id) {
   if (!r || !r.answers) return;
   const data = { n: r.name || "", s: r.session || "", t: r.date ? r.date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "", a: r.answers };
   const enc = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(data)))));
-  window.open(new URL("index.html", location.href).href + "#report=" + enc, "_blank");
+  window.open(LIVE_SITE + "#report=" + enc, "_blank");
 }
 document.getElementById("content").addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest("button.rep");
@@ -356,13 +385,13 @@ function downloadCSV() {
   const q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
   const header = ["Date", "Session", "Name", "Email", "Phone", "Country", "Designation", "Organisation", "Consistency %", "Consistency", "Scores out of"]
     .concat(TACTICS.map((t) => t[1]))
-    .concat(["CORE avg", "SOFT avg", "HARD avg", "Development focus", "Most-used levers", "Less-used levers", "Record ID"]);
+    .concat(["CORE avg", "SOFT avg", "HARD avg", "Development focus", "Most-used levers", "Less-used levers", "Circular choices (lowered consistency)", "Record ID"]);
   const lines = [header.map(q).join(",")];
   rows.forEach((r) => {
     const g = r.groupAvg || {};
     lines.push([fmtDate(r.date), r.session || "", r.name, r.email || "", r.phone || "", r.country || "", r.designation || "", r.organisation || "", r.consistencyPct, (r.consistencyPct || 0) >= 80 ? "Reliable (80%+)" : "Explore further (below 80%)", maxOf(r)]
       .concat(TACTICS.map((t) => (r.scores ? r.scores[t[0]] : "")))
-      .concat([g.CORE, g.SOFT, g.HARD, focusOf(r), (r.strengths || []).join(", "), (r.blindSpots || []).join(", "), r.id])
+      .concat([g.CORE, g.SOFT, g.HARD, focusOf(r), (r.strengths || []).join(", "), (r.blindSpots || []).join(", "), loopsOf(r).map((t) => t.concat([t[0]]).map(tName).join(" > ")).join("; "), r.id])
       .map(q).join(","));
   });
   const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
