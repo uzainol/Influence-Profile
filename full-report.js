@@ -66,7 +66,7 @@
       o.push('<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="' + (f ? 5 : 3.6) + '" fill="' + (f ? "#36AA54" : "#1A1A1A") + '"/>');
       var lx = cx + (R + 34) * Math.cos(ang(i)), ly = cy + (R + 30) * Math.sin(ang(i));
       var anc = Math.abs(Math.cos(ang(i))) < 0.12 ? "middle" : (Math.cos(ang(i)) > 0 ? "start" : "end");
-      o.push('<text x="' + lx.toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="' + anc + '" font-size="' + labelSize + '" font-weight="700" fill="' + (f ? "#36AA54" : "#1A1A1A") + '">' + esc(l.short.toUpperCase()) + "</text>");
+      o.push('<text x="' + lx.toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="' + anc + '" font-size="' + labelSize + '" font-weight="700" fill="' + (f ? "#36AA54" : "#1A1A1A") + '">' + esc(l.short.toUpperCase()) + (l.inLoop ? "*" : "") + "</text>");
       o.push('<text x="' + lx.toFixed(1) + '" y="' + (ly + subSize + 2).toFixed(1) + '" text-anchor="' + anc + '" font-size="' + subSize + '" fill="' + (f ? "#36AA54" : "#5F656C") + '">' + l.score + "/4" + (f ? x(" · FOCUS", " · FOKUS") : "") + "</text>");
     });
     o.push("</svg>");
@@ -280,13 +280,14 @@
       return out.filter(function (t) { return byId[t[0]] && byId[t[1]] && byId[t[2]]; });
     }
     var loops = findLoops(input.answers);
+    scored.forEach(function (sx) { sx.inLoop = !!(loops && loops.some(function (t) { return t.indexOf(sx.id) >= 0; })); });
     function loopBox() {
       if (!loops || !loops.length) return "";
       var shown = loops.slice(0, 4);
-      return '<div class="loops"><div class="lab" style="color:#9A6B1F;margin:0">' + x("Choices that went in a circle", "Pilihan yang berpusing dalam bulatan") + " (" + loops.length + ')</div><div class="lps">'
+      return '<div class="loops"><div class="lab" style="color:#9A6B1F;margin:0">' + x("Choices that went in a circle", "Pilihan yang berpusing dalam bulatan") + " (" + loops.length + ')*</div><div class="lps">'
         + shown.map(function (t) { return '<span class="lp">' + t.concat([t[0]]).map(function (id) { return esc(byId[id].short); }).join(" › ") + "</span>"; }).join("")
         + (loops.length > shown.length ? '<span class="lpm">' + x("+" + (loops.length - shown.length) + " more", "+" + (loops.length - shown.length) + " lagi") + "</span>" : "") + "</div>"
-        + '<p class="small" style="margin:3px 0 0">' + x("These lowered your consistency score: in each loop you chose the first lever over the second and the second over the third, but the third over the first. Usually those levers feel close for you, or depend on the situation. Worth discussing in your debrief.", "Inilah yang merendahkan skor konsistensi anda: dalam setiap bulatan, anda memilih yang pertama berbanding yang kedua dan yang kedua berbanding yang ketiga, tetapi yang ketiga berbanding yang pertama. Biasanya pendekatan itu hampir sama bagi anda, atau bergantung pada situasi. Wajar dibincangkan semasa sesi taklimat.") + "</p></div>";
+        + '<p class="small" style="margin:3px 0 0">' + x("These lowered your consistency score: in each loop you chose the first lever over the second and the second over the third, but the third over the first. Usually those levers feel close for you, or depend on the situation. Worth discussing in your debrief. <b>*</b> marks these levers on your influence web: read their scores with a little more care.", "Inilah yang merendahkan skor konsistensi anda: dalam setiap bulatan, anda memilih yang pertama berbanding yang kedua dan yang kedua berbanding yang ketiga, tetapi yang ketiga berbanding yang pertama. Biasanya pendekatan itu hampir sama bagi anda, atau bergantung pada situasi. Wajar dibincangkan semasa sesi taklimat. <b>*</b> menandakan pendekatan ini pada carta anda: baca skornya dengan lebih berhati-hati.") + "</p></div>";
     }
 
     // What a 0–4 score means: tendency, not ability
