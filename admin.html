@@ -13,7 +13,7 @@
 <style>
   :root {
     --white:#FFFFFF; --ink:#1A1A1A; --green:#36AA54; --muted:#5F656C;
-    --grey:#8A9099; --hair:#DDE0E3; --tint:#F2F8F4;
+    --grey:#8A9099; --hair:#DDE0E3; --tint:#F2F8F4; --red:#B23B3B;
     --head:'Arial Narrow','Roboto Condensed','Helvetica Condensed',Arial,sans-serif;
     --body:Arial,Helvetica,sans-serif;
   }
@@ -27,6 +27,10 @@
   .kicker::before { content: ""; width: 8px; height: 8px; background: var(--green); }
   .btn { font-family: var(--head); font-weight: 700; font-size: 13px; letter-spacing: .14em; padding: 12px 20px; cursor: pointer; border: 1px solid var(--ink); background: var(--ink); color: var(--white); }
   .btn.ghost { background: var(--white); color: var(--ink); }
+  .btn.small { padding: 8px 14px; font-size: 11px; }
+  .btn.danger { border-color: var(--red); background: var(--white); color: var(--red); }
+  .btn.danger.solid { background: var(--red); color: var(--white); }
+  .btn[disabled] { opacity: .35; cursor: not-allowed; }
   .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 22px; }
   select { font-family: var(--head); font-weight: 700; font-size: 13px; letter-spacing: .06em; padding: 11px 12px; border: 1px solid var(--ink); background: var(--white); color: var(--ink); border-radius: 0; }
   details.prompts { margin-top: 22px; border: 1px solid var(--hair); padding: 14px 18px; max-width: 760px; }
@@ -42,7 +46,7 @@
   .contentbox { margin-top: 18px; border: 1px solid var(--hair); background: var(--tint); padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; max-width: 760px; }
   .contentbox b { font-family: var(--head); letter-spacing: .14em; font-size: 12px; color: var(--green); }
   .note { font-size: 13px; color: var(--muted); line-height: 1.5; }
-  .err { color: #B23B3B; }
+  .err { color: var(--red); }
   .stats { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--hair); max-width: 560px; }
   .stats div { padding: 14px 8px; text-align: center; border-left: 1px solid var(--hair); }
   .stats div:first-child { border-left: none; }
@@ -62,6 +66,16 @@
   td.num { text-align: center; font-family: var(--head); font-weight: 700; }
   @media (max-width: 600px) { .bar { grid-template-columns: 130px 1fr 34px; } h1 { font-size: 32px; } }
   .loopcell{font-size:11px;color:#8A5A00;margin-top:2px;cursor:help;white-space:nowrap}
+  /* selection and recycle bin */
+  th.pick, td.pick { width: 34px; text-align: center; padding-left: 10px; padding-right: 4px; }
+  td.pick input, th.pick input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--green); }
+  tr.picked td { background: #FFF6F6; }
+  .selbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 0 0 10px; }
+  .selbar .count { font-family: var(--head); font-weight: 700; font-size: 12px; letter-spacing: .12em; color: var(--muted); }
+  .bin th { background: var(--muted); }
+  .binnote { border: 1px solid var(--hair); background: #FAFAFA; padding: 12px 16px; max-width: 760px; margin: 0 0 14px; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--white); font-size: 13px; padding: 10px 18px; z-index: 10; }
+  .toast button { margin-left: 12px; background: none; border: 0; color: #9FD3AE; font-weight: 700; cursor: pointer; font-size: 13px; text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -80,6 +94,7 @@
       <select id="sessionFilter"><option value="__all">All sessions</option></select>
       <button class="btn" id="csv">⤓ DOWNLOAD CSV</button>
       <button class="btn ghost" id="refresh">↻ REFRESH</button>
+      <button class="btn ghost" id="binToggle">🗑 RECYCLE BIN</button>
       <button class="btn ghost" id="signOut">SIGN OUT</button>
     </div>
     <details class="prompts">
@@ -158,10 +173,14 @@ function loopCell(r) {
 }
 
 const $ = (id) => document.getElementById(id);
-let allRows = [];
+let allRows = [];      // every saved result, including those in the recycle bin
+let liveRows = [];     // results not in the bin: these feed the summary, table and CSV
+let binRows = [];      // results in the recycle bin
 let FULL = null;       // full-report content library, loaded from Firestore after sign-in
 let DB = null;
 let rows = [];
+let VIEW = "results";  // "results" or "bin"
+const SEL = new Set(); // ids ticked in the current view
 const NO_SESSION = "(no session)";
 const urlSession = new URLSearchParams(location.search).get("session") || "";
 function sessionOf(r) { return r.session ? r.session : NO_SESSION; }
@@ -183,6 +202,7 @@ if (FIREBASE_CONFIG.apiKey.indexOf("PASTE") !== -1) {
   $("signOut").onclick = () => auth.signOut();
   $("refresh").onclick = () => load(db);
   $("csv").onclick = downloadCSV;
+  $("binToggle").onclick = () => { VIEW = VIEW === "bin" ? "results" : "bin"; SEL.clear(); updateBinButton(); applyFilter(); };
 
   auth.onAuthStateChanged((user) => {
     $("signedOut").style.display = user ? "none" : "block";
@@ -192,7 +212,7 @@ if (FIREBASE_CONFIG.apiKey.indexOf("PASTE") !== -1) {
   });
 }
 
-document.getElementById("sessionFilter").addEventListener("change", applyFilter);
+document.getElementById("sessionFilter").addEventListener("change", () => { SEL.clear(); applyFilter(); });
 
 function esc(s) {
   return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -208,8 +228,13 @@ async function load(db) {
     const snap = await db.collection("results").orderBy("createdAt", "desc").get();
     allRows = snap.docs.map((d) => {
       const x = d.data();
-      return Object.assign({ id: d.id, date: x.createdAt ? x.createdAt.toDate() : null }, x);
+      return Object.assign({ id: d.id, date: x.createdAt ? x.createdAt.toDate() : null, binDate: x.deletedAt && x.deletedAt.toDate ? x.deletedAt.toDate() : null }, x);
     });
+    liveRows = allRows.filter((r) => r.deleted !== true);
+    binRows = allRows.filter((r) => r.deleted === true).sort((a, b) => (b.binDate || 0) - (a.binDate || 0));
+    const still = new Set(allRows.map((r) => r.id));
+    Array.from(SEL).forEach((id) => { if (!still.has(id)) SEL.delete(id); });
+    updateBinButton();
     buildFilter();
     applyFilter();
   } catch (e) {
@@ -218,6 +243,11 @@ async function load(db) {
       ? "Access denied. This Google account is not the admin set in your Firestore rules."
       : e.message;
   }
+}
+function updateBinButton() {
+  $("binToggle").textContent = VIEW === "bin" ? "← BACK TO RESULTS" : "🗑 RECYCLE BIN (" + binRows.length + ")";
+  $("sessionFilter").style.display = VIEW === "bin" ? "none" : "";
+  $("csv").style.display = VIEW === "bin" ? "none" : "";
 }
 
 /* 22-question version scores 0–4; the earlier 33-question version scored 0–6. */
@@ -237,27 +267,46 @@ function buildFilter() {
   const sel = $("sessionFilter");
   const current = sel.value !== "__all" ? sel.value : (urlSession || "__all");
   const counts = {};
-  allRows.forEach((r) => { const k = sessionOf(r); counts[k] = (counts[k] || 0) + 1; });
+  liveRows.forEach((r) => { const k = sessionOf(r); counts[k] = (counts[k] || 0) + 1; });
   const names = Object.keys(counts).sort((a, b) => (a === NO_SESSION) - (b === NO_SESSION) || a.localeCompare(b));
-  sel.innerHTML = '<option value="__all">All sessions (' + allRows.length + ')</option>'
+  sel.innerHTML = '<option value="__all">All sessions (' + liveRows.length + ')</option>'
     + names.map((k) => '<option value="' + esc(k) + '">' + esc(k) + ' (' + counts[k] + ')</option>').join("");
   sel.value = names.indexOf(current) !== -1 ? current : "__all";
 }
 function applyFilter() {
+  if (VIEW === "bin") { rows = binRows.slice(); renderBin(); return; }
   const v = $("sessionFilter").value;
-  rows = v === "__all" ? allRows.slice() : allRows.filter((r) => sessionOf(r) === v);
+  rows = v === "__all" ? liveRows.slice() : liveRows.filter((r) => sessionOf(r) === v);
   render();
+}
+
+function pickHead() {
+  const all = rows.length > 0 && rows.every((r) => SEL.has(r.id));
+  return '<th class="pick"><input type="checkbox" id="pickAll" title="Select all shown"' + (all ? " checked" : "") + "></th>";
+}
+function pickCell(r) {
+  return '<td class="pick"><input type="checkbox" class="pick" data-pick="' + esc(r.id) + '" title="Select"' + (SEL.has(r.id) ? " checked" : "") + "></td>";
+}
+function selBar(buttons) {
+  return '<div class="selbar"><span class="count" id="selCount">' + SEL.size + " SELECTED</span>" + buttons + "</div>";
+}
+function refreshSelection() {
+  if ($("selCount")) $("selCount").textContent = SEL.size + " SELECTED";
+  document.querySelectorAll("[data-needs-sel]").forEach((b) => { b.disabled = SEL.size === 0; });
+  document.querySelectorAll("input[data-pick]").forEach((c) => { c.closest("tr").classList.toggle("picked", c.checked); });
+  const all = $("pickAll");
+  if (all) all.checked = rows.length > 0 && rows.every((r) => SEL.has(r.id));
 }
 
 function render() {
   const n = rows.length;
-  if (!n) { $("content").innerHTML = '<p class="note" style="margin-top:24px">No results yet.</p>'; return; }
+  if (!n) { $("content").innerHTML = '<p class="note" style="margin-top:24px">No results yet.' + (binRows.length ? " (" + binRows.length + " in the recycle bin.)" : "") + "</p>"; return; }
 
   const avg = (fn) => rows.reduce((a, r) => a + fn(r), 0) / n;
   const avgCons = avg((r) => r.consistencyPct || 0);
   const targets = {};
   rows.forEach((r) => { String(focusOf(r)).split(", ").filter(Boolean).forEach((t) => { targets[t] = (targets[t] || 0) + 1; }); });
-  const topTarget = Object.entries(targets).sort((a, b) => b[1] - a[1])[0];
+  const topTarget = Object.entries(targets).sort((a, b) => b[1] - a[1])[0] || ["—", 0];
 
   const sv = $("sessionFilter").value;
   let html = '<div class="kicker">COHORT SUMMARY · ' + esc(sv === "__all" ? "ALL SESSIONS" : sv.toUpperCase()) + '</div>';
@@ -280,7 +329,9 @@ function render() {
     });
   });
 
-  html += '<div class="kicker">INDIVIDUAL RESULTS</div><div class="tablewrap"><table><thead><tr>'
+  html += '<div class="kicker">INDIVIDUAL RESULTS</div>'
+    + selBar('<button class="btn danger small" id="toBin" data-needs-sel' + (SEL.size ? "" : " disabled") + '>🗑 MOVE TO BIN</button>')
+    + '<div class="tablewrap"><table><thead><tr>' + pickHead()
     + '<th>REPORT</th><th>DATE</th><th>SESSION</th><th>NAME</th><th>EMAIL</th><th>PHONE</th><th>COUNTRY</th><th>DESIGNATION</th><th>ORGANISATION</th><th>CONSISTENCY</th><th>OUT OF</th>'
     + TACTICS.map((t) => '<th title="' + t[1] + '">' + t[1].split(" ")[0] + '</th>').join("")
     + '<th>CORE</th><th>SOFT</th><th>HARD</th><th>DEVELOPMENT FOCUS</th></tr></thead><tbody>';
@@ -289,7 +340,7 @@ function render() {
     const repCell = maxOf(r) === 4
       ? '<td><button class="rep" data-id="' + esc(r.id) + '">VIEW</button><button class="rep full" data-full="' + esc(r.id) + '"' + (FULL ? ' title="Full report"' : ' disabled title="Upload the full report content first"') + '>FULL</button></td>'
       : '<td class="num" title="Earlier 33-question version: report not available">—</td>';
-    html += '<tr>' + repCell + '<td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.session || "—") + '</td><td>' + esc(r.name || "—") + '</td><td>' + esc(r.email || "—") + '</td><td>' + esc(r.phone || "—") + '</td><td>' + esc(r.country || "—") + '</td><td>' + esc(r.designation || "—") + '</td><td>' + esc(r.organisation || "—") + '</td>'
+    html += '<tr' + (SEL.has(r.id) ? ' class="picked"' : "") + '>' + pickCell(r) + repCell + '<td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.session || "—") + '</td><td>' + esc(r.name || "—") + '</td><td>' + esc(r.email || "—") + '</td><td>' + esc(r.phone || "—") + '</td><td>' + esc(r.country || "—") + '</td><td>' + esc(r.designation || "—") + '</td><td>' + esc(r.organisation || "—") + '</td>'
       + '<td class="num"' + ((r.consistencyPct || 0) < 80 ? ' style="color:#B23B3B" title="Below 80%: explore further in the debrief"' : '') + '>' + esc(r.consistencyPct) + '%' + ((r.consistencyPct || 0) < 80 ? ' · explore' : '') + loopCell(r) + '</td>'
       + '<td class="num">' + maxOf(r) + '</td>'
       + TACTICS.map((t) => '<td class="num">' + esc(r.scores ? r.scores[t[0]] : "") + '</td>').join("")
@@ -299,6 +350,96 @@ function render() {
   html += '</tbody></table></div>';
   $("content").innerHTML = html;
 }
+
+/* ---------- Recycle bin ----------
+   Moving to the bin only marks a result (deleted: true), so it can be restored. It disappears from the
+   summary, table, session counts and CSV. "Delete forever" removes it from Firestore for good; the
+   Firestore rules only allow that for results already in the bin. */
+function renderBin() {
+  let html = '<div class="kicker">RECYCLE BIN</div>'
+    + '<div class="binnote note">Results here are hidden from the summary, table and CSV, but they are still stored. Restore them, or delete them forever. '
+    + 'For a participant’s request to delete their data (PDPA), use <b>Delete forever</b>.</div>';
+  if (!rows.length) { $("content").innerHTML = html + '<p class="note">The recycle bin is empty.</p>'; return; }
+  html += selBar('<button class="btn ghost small" id="restore" data-needs-sel' + (SEL.size ? "" : " disabled") + '>↺ RESTORE</button>'
+      + '<button class="btn danger small" id="forever" data-needs-sel' + (SEL.size ? "" : " disabled") + '>✕ DELETE FOREVER</button>'
+      + '<button class="btn danger solid small" id="emptyBin">EMPTY BIN (' + rows.length + ')</button>')
+    + '<div class="tablewrap bin"><table><thead><tr>' + pickHead()
+    + '<th>MOVED TO BIN</th><th>TAKEN</th><th>SESSION</th><th>NAME</th><th>EMAIL</th><th>ORGANISATION</th><th>CONSISTENCY</th><th>RECORD ID</th></tr></thead><tbody>';
+  rows.forEach((r) => {
+    html += '<tr' + (SEL.has(r.id) ? ' class="picked"' : "") + '>' + pickCell(r) + '<td>' + esc(fmtDate(r.binDate)) + '</td><td>' + esc(fmtDate(r.date)) + '</td><td>' + esc(r.session || "—") + '</td><td>' + esc(r.name || "—") + '</td><td>' + esc(r.email || "—") + '</td><td>' + esc(r.organisation || "—") + '</td><td class="num">' + esc(r.consistencyPct) + '%</td><td style="color:var(--grey)">' + esc(r.id) + '</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  $("content").innerHTML = html;
+}
+
+function namesOf(ids) {
+  const list = ids.map((id) => { const r = allRows.find((x) => x.id === id); return r ? (r.name || "(no name)") : id; });
+  return list.slice(0, 8).map((n) => "  • " + n).join("\n") + (list.length > 8 ? "\n  … and " + (list.length - 8) + " more" : "");
+}
+/* Firestore allows up to 500 writes per batch; use smaller chunks to be safe. */
+async function inBatches(ids, fn) {
+  for (let i = 0; i < ids.length; i += 400) {
+    const batch = DB.batch();
+    ids.slice(i, i + 400).forEach((id) => fn(batch, DB.collection("results").doc(id)));
+    await batch.commit();
+  }
+}
+function toast(msg, undoIds) {
+  const old = document.querySelector(".toast"); if (old) old.remove();
+  const t = document.createElement("div"); t.className = "toast"; t.textContent = msg;
+  if (undoIds) {
+    const b = document.createElement("button"); b.textContent = "UNDO";
+    b.onclick = () => { t.remove(); restore(undoIds, true); };
+    t.appendChild(b);
+  }
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 8000);
+}
+function ruleError(e, what) {
+  $("error").textContent = e && e.code === "permission-denied"
+    ? "Couldn’t " + what + ". Update your Firestore rules (the results section: update and delete lines), then try again."
+    : "Couldn’t " + what + ": " + (e && e.message ? e.message : e);
+}
+async function moveToBin(ids) {
+  if (!ids.length) return;
+  if (!confirm("Move " + ids.length + " result" + (ids.length > 1 ? "s" : "") + " to the recycle bin?\n\n" + namesOf(ids)
+      + "\n\nThey will be hidden from the results, summary and CSV. You can restore them from the recycle bin.")) return;
+  $("error").textContent = "";
+  try {
+    await inBatches(ids, (b, ref) => b.update(ref, { deleted: true, deletedAt: firebase.firestore.FieldValue.serverTimestamp() }));
+    SEL.clear(); await load(DB);
+    toast(ids.length + " moved to the recycle bin.", ids);
+  } catch (e) { ruleError(e, "move to the bin"); }
+}
+async function restore(ids, quiet) {
+  if (!ids.length) return;
+  $("error").textContent = "";
+  try {
+    await inBatches(ids, (b, ref) => b.update(ref, { deleted: false, deletedAt: firebase.firestore.FieldValue.delete() }));
+    SEL.clear(); await load(DB);
+    toast(ids.length + " restored" + (quiet ? "." : " to the results."));
+  } catch (e) { ruleError(e, "restore"); }
+}
+async function deleteForever(ids, emptying) {
+  if (!ids.length) return;
+  const typed = prompt((emptying ? "Empty the recycle bin?\n\n" : "")
+    + "This permanently deletes " + ids.length + " result" + (ids.length > 1 ? "s" : "") + ":\n\n" + namesOf(ids)
+    + "\n\nThis CANNOT be undone. Their answers and reports will be gone for good.\n\nType DELETE to confirm.");
+  if (typed === null) return;
+  if (typed.trim() !== "DELETE") { alert("Nothing was deleted. Type DELETE in capitals to confirm."); return; }
+  $("error").textContent = "";
+  try {
+    await inBatches(ids, (b, ref) => b.delete(ref));
+    SEL.clear(); await load(DB);
+    toast(ids.length + " permanently deleted.");
+  } catch (e) { ruleError(e, "delete"); }
+}
+
+document.getElementById("content").addEventListener("change", (e) => {
+  const c = e.target;
+  if (c.id === "pickAll") { rows.forEach((r) => { if (c.checked) SEL.add(r.id); else SEL.delete(r.id); }); document.querySelectorAll("input[data-pick]").forEach((x) => { x.checked = c.checked; }); refreshSelection(); return; }
+  if (c.hasAttribute && c.hasAttribute("data-pick")) { const id = c.getAttribute("data-pick"); if (c.checked) SEL.add(id); else SEL.delete(id); refreshSelection(); }
+});
 
 /* ---------- Full (paid) report ----------
    The content library is kept in Firestore at content/fullReport and can only be read by the admin
@@ -318,7 +459,7 @@ async function loadContent(db) {
     FULL = null;
     $("contentStatus").innerHTML = '<span class="err">' + (e.code === "permission-denied" ? "Can’t read the report content. Update your Firestore rules (content section), then refresh." : esc(e.message)) + "</span>";
   }
-  if (rows.length) render();
+  if (rows.length && VIEW === "results") render();
 }
 async function uploadContent(db, file) {
   try {
@@ -374,14 +515,19 @@ function openReport(id) {
   window.open(LIVE_SITE + "#report=" + enc, "_blank");
 }
 document.getElementById("content").addEventListener("click", (e) => {
-  const b = e.target.closest && e.target.closest("button.rep");
+  const t = e.target;
+  if (t.id === "toBin") { moveToBin(Array.from(SEL)); return; }
+  if (t.id === "restore") { restore(Array.from(SEL)); return; }
+  if (t.id === "forever") { deleteForever(Array.from(SEL)); return; }
+  if (t.id === "emptyBin") { deleteForever(binRows.map((r) => r.id), true); return; }
+  const b = t.closest && t.closest("button.rep");
   if (!b || b.disabled) return;
   if (b.hasAttribute("data-full")) openFull(b.getAttribute("data-full"));
   else openReport(b.getAttribute("data-id"));
 });
 
 function downloadCSV() {
-  if (!rows.length) return;
+  if (!rows.length || VIEW !== "results") return;
   const q = (v) => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
   const header = ["Date", "Session", "Name", "Email", "Phone", "Country", "Designation", "Organisation", "Consistency %", "Consistency", "Scores out of"]
     .concat(TACTICS.map((t) => t[1]))
